@@ -1,0 +1,11 @@
+.o_gradient_background{
+  background-color: #222222;
+  background-image: url('../img/gradient-background-2560x1600.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+a {
+  text-decoration:none!important;
+}

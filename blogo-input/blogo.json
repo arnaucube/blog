@@ -1,0 +1,19 @@
+{
+  "title": "ArnauCube - Blog",
+  "relativePath": "/blog",
+  "postsDir": "posts",
+  "indexTemplate": "index.html",
+  "postThumbTemplate": "postThumbTemplate.html",
+  "posts": [
+    {
+      "thumb": "blogo_thumb.md",
+      "md": "blogo.md"
+    }
+  ],
+  "copyRaw": [
+    "css",
+    "img",
+    "vendor",
+    "js"
+  ]
+}
