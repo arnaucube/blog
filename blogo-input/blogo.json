@@ -6,6 +6,10 @@
   "postThumbTemplate": "postThumbTemplate.html",
   "posts": [
     {
+      "thumb": "flock-botnet_thumb.md",
+      "md": "flock-botnet.md"
+    },
+    {
       "thumb": "blogo_thumb.md",
       "md": "blogo.md"
     }
