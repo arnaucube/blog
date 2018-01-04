@@ -6,6 +6,10 @@
   "postThumbTemplate": "postThumbTemplate.html",
   "posts": [
     {
+      "thumb": "coffeeminer_thumb.md",
+      "md": "coffeeminer-hacking-wifi-cryptocurrency-miner.md"
+    },
+    {
       "thumb": "flock-botnet_thumb.md",
       "md": "flock-botnet.md"
     },
