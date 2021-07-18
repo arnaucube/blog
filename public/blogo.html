@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="Webpage description goes here" />
+    <meta charset="utf-8">
+    <title>Static blog template engine implementation in Go - ArnauCube - Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css">
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc" crossorigin="anonymous">
+  </head>
+
+  <body>
+
+                             <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+          style="height:50px;font-size:130%;">
+      <div class="container">
+        <a href="/blog" style="color:#000;">Blog index</a>
+        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+      </div>
+    </nav>
+    <div class="o_gradient_background" style="height:5px;"></div>
+
+
+
+    <div class="container" style="margin-top:80px;max-width:800px;">
+      <h1>Static blog template engine implementation in Go</h1>
+
+<p><em>2017-12-26</em></p>
+
+<p>Some days ago, I decided to start this blog, to put there all the thoughts and ideas that goes through my mind. After some research, I&rsquo;ve found some interesting projects, but with a lot of features that I don&rsquo;t need to use. So I decided to write my own minimalistic static blog template engine with Go lang.</p>
+
+<p>This is how I made <a href="https://github.com/arnaucube/blogo">blogo</a> the blog static template engine to do this blog.</p>
+
+<h3>Static blog template engine?</h3>
+
+<p>The main idea is to be able to write the blog posts in Markdown files, and with the template engine, output the HTML files ready to upload in the web hosting server.</p>
+
+<h2>Structure</h2>
+
+<p>What we wan to have in the input is:</p>
+
+<pre><code>/blogo
+    /input
+        /css
+            mycss.css
+        /img
+            post01_image.png
+        index.html
+        postThumbTemplate.html
+        post01.md
+        post01thumb.md
+        post02.md
+        post02thumb.md
+</code></pre>
+
+<h4>blogo.json</h4>
+
+<p>This is the file that have the configuration that will be read by the Go script.</p>
+
+<pre><code class="language-json">{
+    &quot;title&quot;: &quot;my blog&quot;,
+    &quot;indexTemplate&quot;: &quot;index.html&quot;,
+    &quot;postThumbTemplate&quot;: &quot;postThumbTemplate.html&quot;,
+    &quot;posts&quot;: [
+        {
+            &quot;thumb&quot;: &quot;post01thumb.md&quot;,
+            &quot;md&quot;: &quot;post01.md&quot;
+        },
+        {
+            &quot;thumb&quot;: &quot;post02thumb.md&quot;,
+            &quot;md&quot;: &quot;post02.md&quot;
+        }
+    ],
+    &quot;copyRaw&quot;: [
+      &quot;css&quot;,
+      &quot;js&quot;
+    ]
+}
+</code></pre>
+
+<p>The <em>copyRaw</em> element, will be all the directories to copy raw to the output.</p>
+
+<h4>index.html</h4>
+
+<p>This is the file that will be used as the template for the main page and also for the posts pages.</p>
+
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;[blogo-title]&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;
+        [blogo-content]
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>As we can see, we just need to define the html file, and in the title define the <em>[blogo-title]</em>, and in the content place the <em>[blogo-content]</em>.</p>
+
+<h4>postThumbTemplate.html</h4>
+
+<p>This is the file where is placed the html box for each post that will be displayed in the main page.</p>
+
+<pre><code class="language-html">&lt;div class=&quot;well&quot;&gt;
+    [blogo-index-post-template]
+&lt;/div&gt;
+</code></pre>
+
+<h4>post01thumb.md</h4>
+
+<pre><code class="language-markdown"># Post 01 thumb
+This is the description of the Post 01
+</code></pre>
+
+<h4>post01.md</h4>
+
+<pre><code class="language-markdown"># Title of the Post 01
+Hi, this is the content of the post
+
+'''js
+    console.log(&quot;hello world&quot;);
+'''
+</code></pre>
+
+<h2>Let&rsquo;s start to code</h2>
+
+<p>As we have exposed, we want to develop a Go lang script that from some HTML template and the Markdown text files, generates the complete blog with the main page and all the posts.</p>
+
+<h4>readConfig.go</h4>
+
+<p>This is the file that reads the <em>blogo.json</em> file to get the blog configuration.</p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;encoding/json&quot;
+	&quot;io/ioutil&quot;
+)
+
+//Post is the struct for each post of the blog
+type Post struct {
+	Thumb string `json:&quot;thumb&quot;`
+	Md    string `json:&quot;md&quot;`
+}
+
+//Config gets the config.json file into struct
+type Config struct {
+	Title             string   `json:&quot;title&quot;`
+	IndexTemplate     string   `json:&quot;indexTemplate&quot;`
+	PostThumbTemplate string   `json:&quot;postThumbTemplate&quot;`
+	Posts             []Post   `json:&quot;posts&quot;`
+	CopyRaw           []string `json:&quot;copyRaw&quot;`
+}
+
+var config Config
+
+func readConfig(path string) {
+	file, err := ioutil.ReadFile(path)
+	check(err)
+	content := string(file)
+	json.Unmarshal([]byte(content), &amp;config)
+}
+</code></pre>
+
+<h4>files.go, the operations with files</h4>
+
+<p>We will need some file operation functions, so we have placed all in this file.</p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;io/ioutil&quot;
+	&quot;os/exec&quot;
+	&quot;strings&quot;
+
+	&quot;github.com/fatih/color&quot;
+)
+
+func readFile(path string) string {
+	dat, err := ioutil.ReadFile(path)
+	if err != nil {
+		color.Red(path)
+	}
+	check(err)
+	return string(dat)
+}
+
+func writeFile(path string, newContent string) {
+	err := ioutil.WriteFile(path, []byte(newContent), 0644)
+	check(err)
+	color.Green(path)
+}
+
+func getLines(text string) []string {
+	lines := strings.Split(text, &quot;\n&quot;)
+	return lines
+}
+
+func concatStringsWithJumps(lines []string) string {
+	var r string
+	for _, l := range lines {
+		r = r + l + &quot;\n&quot;
+	}
+	return r
+}
+
+func copyRaw(original string, destination string) {
+	color.Green(original + &quot; --&gt; to --&gt; &quot; + destination)
+	_, err := exec.Command(&quot;cp&quot;, &quot;-rf&quot;, original, destination).Output()
+	check(err)
+}
+</code></pre>
+
+<h4>main.go</h4>
+
+<p>To convert the HTML content to Markdown content, we will use <a href="https://github.com/russross/blackfriday">https://github.com/russross/blackfriday</a></p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;strings&quot;
+
+	blackfriday &quot;gopkg.in/russross/blackfriday.v2&quot;
+)
+
+const directory = &quot;blogo-input&quot;
+
+func main() {
+	readConfig(directory + &quot;/blogo.json&quot;)
+	fmt.Println(config)
+
+	// generate index page
+	indexTemplate := readFile(directory + &quot;/&quot; + config.IndexTemplate)
+	indexPostTemplate := readFile(directory + &quot;/&quot; + config.PostThumbTemplate)
+	var blogoIndex string
+	blogoIndex = &quot;&quot;
+	for _, post := range config.Posts {
+		mdpostthumb := readFile(directory + &quot;/&quot; + post.Thumb)
+		htmlpostthumb := string(blackfriday.Run([]byte(mdpostthumb)))
+
+		//put the htmlpostthumb in the blogo-index-post-template
+		m := make(map[string]string)
+		m[&quot;[blogo-index-post-template]&quot;] = htmlpostthumb
+		r := putHTMLToTemplate(indexPostTemplate, m)
+		filename := strings.Split(post.Md, &quot;.&quot;)[0]
+		r = &quot;&lt;a href='&quot; + filename + &quot;.html'&gt;&quot; + r + &quot;&lt;/a&gt;&quot;
+		blogoIndex = blogoIndex + r
+	}
+	//put the blogoIndex in the index.html
+	m := make(map[string]string)
+	m[&quot;[blogo-title]&quot;] = config.Title
+	m[&quot;[blogo-content]&quot;] = blogoIndex
+	r := putHTMLToTemplate(indexTemplate, m)
+	writeFile(&quot;index.html&quot;, r)
+
+	// generate posts pages
+	for _, post := range config.Posts {
+		mdcontent := readFile(directory + &quot;/&quot; + post.Md)
+		htmlcontent := string(blackfriday.Run([]byte(mdcontent)))
+
+		m := make(map[string]string)
+		m[&quot;[blogo-title]&quot;] = config.Title
+		m[&quot;[blogo-content]&quot;] = htmlcontent
+
+		r := putHTMLToTemplate(indexTemplate, m)
+		//fmt.Println(r)
+
+		filename := strings.Split(post.Md, &quot;.&quot;)[0]
+		writeFile(filename+&quot;.html&quot;, r)
+	}
+
+	//copy raw
+	fmt.Println(&quot;copying raw:&quot;)
+	for _, dir := range config.CopyRaw {
+		copyRaw(directory+&quot;/&quot;+dir, &quot;.&quot;)
+	}
+}
+
+func putHTMLToTemplate(template string, m map[string]string) string {
+	lines := getLines(template)
+	var resultL []string
+	for _, line := range lines {
+		inserted := false
+		for k, v := range m {
+			if strings.Contains(line, k) {
+				//in the line, change [tag] with the content
+				lineReplaced := strings.Replace(line, k, v, -1)
+				resultL = append(resultL, lineReplaced)
+				inserted = true
+			}
+		}
+		if inserted == false {
+			resultL = append(resultL, line)
+		}
+	}
+	result := concatStringsWithJumps(resultL)
+	return result
+}
+</code></pre>
+
+<h2>Try it</h2>
+
+<p>To try it, we need to compile the Go code:</p>
+
+<pre><code>&gt; go build
+</code></pre>
+
+<p>And run it:</p>
+
+<pre><code>&gt; ./blogo
+</code></pre>
+
+<p>Or we can just build and run to test:</p>
+
+<pre><code>&gt; go run *.go
+</code></pre>
+
+<p>As the output, we will obtain the html pages with the content:</p>
+
+<ul>
+<li>index.html</li>
+</ul>
+
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;my blog&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;a href='post01.html'&gt;
+            &lt;div class=&quot;col-md-3&quot;&gt;
+                &lt;h1&gt;Post 01 thumb&lt;/h1&gt;
+                &lt;p&gt;This is the description of the Post 01&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/a&gt;
+        &lt;a href='post02.html'&gt;
+            &lt;div class=&quot;col-md-3&quot;&gt;
+                &lt;p&gt;Post 02 thumb&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/a&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<ul>
+<li>post01.html</li>
+</ul>
+
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;my blog&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div&gt;
+        &lt;h1&gt;Title of the Post 01&lt;/h1&gt;
+        &lt;p&gt;Hi, this is the content of the post&lt;/p&gt;
+        &lt;pre&gt;
+            &lt;code class=&quot;language-js&quot;&gt;    console.log(&amp;quot;hello world&amp;quot;);
+            &lt;/code&gt;
+        &lt;/pre&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>Conclusion</h2>
+
+<p>In this post, we have seen how to develop a very minimalistic static blog template engine with Go. In fact, is the blog engine that I&rsquo;m using for this blog.</p>
+
+<p>There are lots of blog template engines nowadays, but maybe we don&rsquo;t need sophisticated engine, and we just need a minimalistic one. In that case, we have seen how to develop one.</p>
+
+<p>The complete project code is able in <a href="https://github.com/arnaucube/blogo">https://github.com/arnaucube/blogo</a></p>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js" integrity="sha384-YNHdsYkH6gMx9y3mRkmcJ2mFUjTd0qNQQvY9VYZgQd7DcN7env35GzlmFaZ23JGp" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+    });
+</script>
+
+
+  </body>
+</html>
+

