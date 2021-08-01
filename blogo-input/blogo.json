@@ -1,21 +1,35 @@
 {
   "title": "ArnauCube - Blog",
   "relativePath": "/blog",
+  "absoluteUrl": "https://arnaucube.com/blog",
   "postsDir": "posts",
   "indexTemplate": "index.html",
   "postThumbTemplate": "postThumbTemplate.html",
+  "metadescr": "arnaucube blog",
+  "metaimg": "img/logoArnauCube.png",
   "posts": [
     {
+      "thumb": "blind-signatures-ec_thumb.md",
+      "md": "blind-signatures-ec.md",
+      "metaimg": "img/posts/blind-signatures-ec/flow1.png",
+      "metadescr": "In this notes, we will cover the scheme proposed at 'New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem' paper by Hamid Mala & Nafiseh Nezhadansari."
+    },
+    {
       "thumb": "coffeeminer_thumb.md",
-      "md": "coffeeminer-hacking-wifi-cryptocurrency-miner.md"
+      "md": "coffeeminer-hacking-wifi-cryptocurrency-miner.md",
+      "metaimg": "img/posts/coffeeMiner/coffeeMiner-network-attack.png",
+      "metadescr": "The goal of this post, is to explain how can be done the attack of MITM (Machine-In-The-Middle) to inject some javascript in the html pages, to force all the machines connected to a WiFi network to be mining a cryptocurrency for the attacker."
     },
     {
       "thumb": "flock-botnet_thumb.md",
-      "md": "flock-botnet.md"
+      "md": "flock-botnet.md",
+      "metaimg": "img/posts/flock-botnet/markovchain.png",
+      "metadescr": "Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains"
     },
     {
       "thumb": "blogo_thumb.md",
-      "md": "blogo.md"
+      "md": "blogo.md",
+      "metadescr": "How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go."
     }
   ],
   "copyRaw": [
