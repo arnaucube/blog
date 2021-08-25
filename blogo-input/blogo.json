@@ -9,6 +9,11 @@
   "metaimg": "img/logoArnauCube.png",
   "posts": [
     {
+      "thumb": "kzg-batch-proof_thumb.md",
+      "md": "kzg-batch-proof.md",
+      "metadescr": "The benefit of batch proof is that allows us to proof multiple points while the proof size remains constant to one G1 point."
+    },
+    {
       "thumb": "kzg-commitments_thumb.md",
       "md": "kzg-commitments.md",
       "metadescr": "In the following notes I've tried to summarize the KZG Commitment scheme with the concepts that helped me to follow the reasoning."
