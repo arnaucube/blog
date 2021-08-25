@@ -4,16 +4,16 @@
   <head>
     <meta name="description" content="arnaucube blog" />
     <meta charset="utf-8">
-    <title>arnaucube</title>
-    <meta name="title" content="arnaucube">
+    <title>arnaucube - blog</title>
+    <meta name="title" content="arnaucube - blog">
     <meta name="description" content="arnaucube blog">
 
-    <meta property="og:title" content="arnaucube" />
+    <meta property="og:title" content="arnaucube - blog" />
     <meta property="og:description" content="arnaucube blog" />
     <meta property="og:url" content="https://arnaucube.com/blog" />
     <meta property="og:type" content="article" />
     <meta property="og:image" content="https://arnaucube.com/blog/img/logoArnauCube.png" />
-    <meta name="twitter:title" content="arnaucube">
+    <meta name="twitter:title" content="arnaucube - blog">
     <meta name="twitter:description" content="arnaucube blog">
     <meta name="twitter:image" content="https://arnaucube.com/blog/img/logoArnauCube.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -40,7 +40,14 @@
                       style="height:50px;font-size:130%;">
       <div class="container">
         <a href="/blog" style="color:#000;">Blog index</a>
-        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
       </div>
       <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
     </nav>
@@ -48,54 +55,58 @@
 
 
     <div class="container" style="margin-top:40px;max-width:800px;">
-      <a href='/blog/kzg-commitments.html'><div class="row" style="color:#000000;text-decoration:none;">
+      <a href='/blog/kzg-batch-proof.html'><div class="row postThumb">
+        <h3>Batch proof in KZG Commitments</h3>
+
+<p>The benefit of <em>batch proof</em> is that allows us to proof multiple points while the proof size remains constant to one $\mathbb{G}_1$ point.</p>
+
+<p><em>2021-08-14</em></p>
+
+</div>
+
+</a><a href='/blog/kzg-commitments.html'><div class="row postThumb">
         <h3>Notes on KZG polynomial commitments</h3>
 
 <p>In the following notes I&rsquo;ve tried to summarize the KZG Commitments scheme with the concepts that helped me to follow the reasoning.</p>
 
 <p><em>2021-08-05</em></p>
 
-    <hr>
 </div>
 
-</a><a href='/blog/blind-signatures-ec.html'><div class="row" style="color:#000000;text-decoration:none;">
+</a><a href='/blog/blind-signatures-ec.html'><div class="row postThumb">
         <h3>Notes on blind signatures over elliptic curves</h3>
 
 <p>In this notes, we will cover the scheme proposed at <em>&ldquo;New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem&rdquo;</em> paper by Hamid Mala &amp; Nafiseh Nezhadansari.</p>
 
 <p><em>2021-07-30</em></p>
 
-    <hr>
 </div>
 
-</a><a href='/blog/coffeeminer-hacking-wifi-cryptocurrency-miner.html'><div class="row" style="color:#000000;text-decoration:none;">
+</a><a href='/blog/coffeeminer-hacking-wifi-cryptocurrency-miner.html'><div class="row postThumb">
         <h3>CoffeeMiner: Hacking WiFi to inject cryptocurrency miner to HTML requests</h3>
 
 <p>The goal of this post, is to explain how can be done the attack of MITM (Machine-In-The-Middle) to inject some javascript in the html pages, to force all the machines connected to a WiFi network to be mining a cryptocurrency for the attacker.</p>
 
 <p><em>2018-01-04</em></p>
 
-    <hr>
 </div>
 
-</a><a href='/blog/flock-botnet.html'><div class="row" style="color:#000000;text-decoration:none;">
+</a><a href='/blog/flock-botnet.html'><div class="row postThumb">
         <h3>Auto generated tweets from Markov chains</h3>
 
 <p>Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains</p>
 
 <p><em>2017-12-29</em></p>
 
-    <hr>
 </div>
 
-</a><a href='/blog/blogo.html'><div class="row" style="color:#000000;text-decoration:none;">
+</a><a href='/blog/blogo.html'><div class="row postThumb">
         <h3>Static blog template engine implementation in Go</h3>
 
 <p>How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go.</p>
 
 <p><em>2017-12-26</em></p>
 
-    <hr>
 </div>
 
 </a>
@@ -142,6 +153,33 @@
           throwOnError : true
         });
       });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 

@@ -4,16 +4,16 @@
   <head>
     <meta name="description" content="In this notes, we will cover the scheme proposed at 'New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem' paper by Hamid Mala & Nafiseh Nezhadansari." />
     <meta charset="utf-8">
-    <title>Notes on blind signatures over elliptic curves - arnaucube</title>
-    <meta name="title" content="Notes on blind signatures over elliptic curves - arnaucube">
+    <title> Notes on blind signatures over elliptic curves - arnaucube - blog</title>
+    <meta name="title" content=" Notes on blind signatures over elliptic curves - arnaucube - blog">
     <meta name="description" content="In this notes, we will cover the scheme proposed at 'New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem' paper by Hamid Mala & Nafiseh Nezhadansari.">
 
-    <meta property="og:title" content="Notes on blind signatures over elliptic curves - arnaucube" />
+    <meta property="og:title" content=" Notes on blind signatures over elliptic curves - arnaucube - blog" />
     <meta property="og:description" content="In this notes, we will cover the scheme proposed at 'New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem' paper by Hamid Mala & Nafiseh Nezhadansari." />
     <meta property="og:url" content="https://arnaucube.com/blog/blind-signatures-ec.html" />
     <meta property="og:type" content="article" />
     <meta property="og:image" content="https://arnaucube.com/blog/img/posts/blind-signatures-ec/flow1.png" />
-    <meta name="twitter:title" content="Notes on blind signatures over elliptic curves - arnaucube">
+    <meta name="twitter:title" content=" Notes on blind signatures over elliptic curves - arnaucube - blog">
     <meta name="twitter:description" content="In this notes, we will cover the scheme proposed at 'New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem' paper by Hamid Mala & Nafiseh Nezhadansari.">
     <meta name="twitter:image" content="https://arnaucube.com/blog/img/posts/blind-signatures-ec/flow1.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -40,7 +40,14 @@
                       style="height:50px;font-size:130%;">
       <div class="container">
         <a href="/blog" style="color:#000;">Blog index</a>
-        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
       </div>
       <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
     </nav>
@@ -198,6 +205,33 @@ func main() {
           throwOnError : true
         });
       });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 

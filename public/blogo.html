@@ -4,16 +4,16 @@
   <head>
     <meta name="description" content="How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go." />
     <meta charset="utf-8">
-    <title>Static blog template engine implementation in Go - arnaucube</title>
-    <meta name="title" content="Static blog template engine implementation in Go - arnaucube">
+    <title> Static blog template engine implementation in Go - arnaucube - blog</title>
+    <meta name="title" content=" Static blog template engine implementation in Go - arnaucube - blog">
     <meta name="description" content="How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go.">
 
-    <meta property="og:title" content="Static blog template engine implementation in Go - arnaucube" />
+    <meta property="og:title" content=" Static blog template engine implementation in Go - arnaucube - blog" />
     <meta property="og:description" content="How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go." />
     <meta property="og:url" content="https://arnaucube.com/blog/blogo.html" />
     <meta property="og:type" content="article" />
     <meta property="og:image" content="https://arnaucube.com/blog/" />
-    <meta name="twitter:title" content="Static blog template engine implementation in Go - arnaucube">
+    <meta name="twitter:title" content=" Static blog template engine implementation in Go - arnaucube - blog">
     <meta name="twitter:description" content="How has this blog been made? In this post we will see how to develop a minimalistic static blog template engine with Go.">
     <meta name="twitter:image" content="https://arnaucube.com/blog/">
     <meta name="twitter:card" content="summary_large_image">
@@ -40,7 +40,14 @@
                       style="height:50px;font-size:130%;">
       <div class="container">
         <a href="/blog" style="color:#000;">Blog index</a>
-        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
       </div>
       <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
     </nav>
@@ -445,6 +452,33 @@ func putHTMLToTemplate(template string, m map[string]string) string {
           throwOnError : true
         });
       });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 

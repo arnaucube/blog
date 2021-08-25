@@ -4,16 +4,16 @@
   <head>
     <meta name="description" content="Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains" />
     <meta charset="utf-8">
-    <title>Auto generated tweets from Markov chains - arnaucube</title>
-    <meta name="title" content="Auto generated tweets from Markov chains - arnaucube">
+    <title> Auto generated tweets from Markov chains - arnaucube - blog</title>
+    <meta name="title" content=" Auto generated tweets from Markov chains - arnaucube - blog">
     <meta name="description" content="Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains">
 
-    <meta property="og:title" content="Auto generated tweets from Markov chains - arnaucube" />
+    <meta property="og:title" content=" Auto generated tweets from Markov chains - arnaucube - blog" />
     <meta property="og:description" content="Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains" />
     <meta property="og:url" content="https://arnaucube.com/blog/flock-botnet.html" />
     <meta property="og:type" content="article" />
     <meta property="og:image" content="https://arnaucube.com/blog/img/posts/flock-botnet/markovchain.png" />
-    <meta name="twitter:title" content="Auto generated tweets from Markov chains - arnaucube">
+    <meta name="twitter:title" content=" Auto generated tweets from Markov chains - arnaucube - blog">
     <meta name="twitter:description" content="Developing a twitter botnet with autonomous bots replying tweets with text generated based on probabilities in Markov chains">
     <meta name="twitter:image" content="https://arnaucube.com/blog/img/posts/flock-botnet/markovchain.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -40,7 +40,14 @@
                       style="height:50px;font-size:130%;">
       <div class="container">
         <a href="/blog" style="color:#000;">Blog index</a>
-        <a href="/" style="color:#000;float:right;">arnaucube.com</a>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
       </div>
       <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
     </nav>
@@ -370,6 +377,33 @@
           throwOnError : true
         });
       });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 
