@@ -81,3 +81,6 @@ We can see that is the equation $q(x)(x-z)=p(x)-y$, which can be expressed as $q
 The content covered in this notes is just a quick overview, but allows us to see the potential of the scheme. One next iteration from what we've seen is the approach to do batch proofs, which allows us to evaluate at multiple points with a single evaluation proof. This scheme can be used as a *vector commitment*, using a polynomial where the $p(i) = x_i$ for all values of $x_i$ of the vector, which can be obtained from the $x_i$ values and computing the [Lagrange interpolation](https://en.wikipedia.org/wiki/Lagrange_polynomial). This is quite useful combined with the mentioned batch proofs. The *batch proofs* logic can be found at the [blog/kzg-batch-proof](https://arnaucube.com/blog/kzg-batch-proof.html) notes (kind of the continuation of the current notes).
 
 As a final note, in order to try to digest the notes, I've did a *toy implementation* of this scheme at https://github.com/arnaucube/kzg-commitments-study. It's quite simple, but contains the logic overviewed in this notes.
+
+<br>
+- [Part 2: Batch proof in KZG Commitments](https://arnaucube.com/blog/kzg-batch-proof.html)

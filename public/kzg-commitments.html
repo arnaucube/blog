@@ -147,6 +147,9 @@ $$</p>
 
 <p>As a final note, in order to try to digest the notes, I&rsquo;ve did a <em>toy implementation</em> of this scheme at <a href="https://github.com/arnaucube/kzg-commitments-study">https://github.com/arnaucube/kzg-commitments-study</a>. It&rsquo;s quite simple, but contains the logic overviewed in this notes.</p>
 
+<p><br>
+- <a href="https://arnaucube.com/blog/kzg-batch-proof.html">Part 2: Batch proof in KZG Commitments</a></p>
+
     </div>
 
     <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
@@ -217,6 +220,22 @@ $$</p>
 
         console.log(theme);
       }
+    </script>
+  <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 

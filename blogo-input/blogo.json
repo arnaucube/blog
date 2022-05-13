@@ -9,6 +9,11 @@
   "metaimg": "img/logoArnauCube.png",
   "posts": [
     {
+      "thumb": "shamir-secret-sharing_thumb.md",
+      "md": "shamir-secret-sharing.md",
+      "metadescr": ""
+    },
+    {
       "thumb": "kzg-batch-proof_thumb.md",
       "md": "kzg-batch-proof.md",
       "metadescr": "The benefit of batch proof is that allows us to proof multiple points while the proof size remains constant to one G1 point."

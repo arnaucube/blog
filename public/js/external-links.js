@@ -27,6 +27,10 @@ ready(function() {
   for (var i = 0; i < anchorElsLength; i++) {
     var anchorEl = anchorEls[i];
     var href = anchorEl.getAttribute('href');
+    if (href[0]=="#") {
+      // if its an internal link, do not add the 'target=_blank'
+      continue;
+    }
 
     if (!internalLinkRegex.test(href)) {
       anchorEl.setAttribute('target', '_blank');

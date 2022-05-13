@@ -55,7 +55,16 @@
 
 
     <div class="container" style="margin-top:40px;max-width:800px;">
-      <a href='/blog/kzg-batch-proof.html'><div class="row postThumb">
+      <a href='/blog/shamir-secret-sharing.html'><div class="row postThumb">
+        <h3>Lagrange Polynomial Interpolation and Shamir secret sharing</h3>
+
+<p>Overview of Langrange Polynomial interpolation and Shamir&rsquo;s secret sharing.</p>
+
+<p><em>2021-10-10</em></p>
+
+</div>
+
+</a><a href='/blog/kzg-batch-proof.html'><div class="row postThumb">
         <h3>Batch proof in KZG Commitments</h3>
 
 <p>The benefit of <em>batch proof</em> is that allows us to proof multiple points while the proof size remains constant to one $\mathbb{G}_1$ point.</p>
@@ -180,6 +189,22 @@
 
         console.log(theme);
       }
+    </script>
+  <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 

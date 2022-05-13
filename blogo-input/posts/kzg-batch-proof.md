@@ -12,7 +12,7 @@ Let $(z_0, y_0), (z_1, y_1), ..., (z_k, y_k)$ be the points that we want to proo
 The *commitment* to the polynomial stands the same than for single proofs: $c=[p(\tau)]_1$.
 
 For the evaluation proof, while in the single proofs we compute $q(x) = \frac{p(x)-y}{x-z}$, we will replace $y$ and $x-z$ by the following two polynomials.
-The constant $y$ is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the [Lagrange interpolation](https://en.wikipedia.org/wiki/Lagrange_polynomial) for the given set of points:
+The constant $y$ is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the [Lagrange interpolation](/blog/shamir-secret-sharing.html#lagrange-polynomial%20interpolation) for the given set of points:
 
 $$
 I(x) = \sum_{j=0}^k y_j l_j(x)\newline
