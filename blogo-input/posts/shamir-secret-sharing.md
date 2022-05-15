@@ -53,6 +53,7 @@ We will work over a finite field of size $p$, where $p$ is a prime number. For o
 Let our secret be $s=14$. We now generate our polynomial of degree $n-1=2$, where $s$ will be the constant coefficient: $p(x)= s + \alpha_1 x^1 + \alpha_2 x^2$. We can set $\alpha_1$ and $\alpha_2$ into any random value, as example $\alpha_1=4$ and $\alpha_2=6$. So we have our polynomial: $p(x) = 14 + 4 x + 6 x^2$.
 
 Now that we have the polynomial, we can pick $k$ points from it, using incremental indexes for the $x$ coordinate: $P_1=(1, p(1)), P_2=(2, p(2)), \space\ldots\space, P_k=(k, p(k))$. With the numbers of our example this is (remember, we work over $\mathbb{F}\_{19}$):
+
 $$
 p(x) = 14 + 4 x + 6 x^2,\newline
 p(1)=14 + 4 \cdot 1 + 6 \cdot 1^2 = 24 \space (mod \space 19) = 5\newline
@@ -61,6 +62,7 @@ p(3)=14 + 4 \cdot 3 + 6 \cdot 3^2 = 80 \space (mod \space 19) = 4\newline
 p(4)=14 + 4 \cdot 4 + 6 \cdot 4^2 = 126 \space (mod \space 19) = 12\newline
 p(5)=14 + 4 \cdot 5 + 6 \cdot 5^2 = 184 \space (mod \space 19) = 13
 $$
+
 So our $k$ points are: $(1,5), (2,8), (3,4), (4,12), (5,13)$. We can distribute these points as our 'secret parts'.
 In order to recover the secret, we need at least $n=3$ points, for example $P_1$, $P_3$, $P_5$, and we compute the *Lagrange polynomial interpolation* to recover the original polynomial (remember, we work over $\mathbb{F}\_{19}$):
 
@@ -68,11 +70,13 @@ $$
 I(x) = \sum_{i=0}^n y_i l_i(x) \space\space
 where \space\space\space l_i(x) = \prod\_{0 \leq j \leq n \\ j\neq i} \frac{x-x_j}{x_i - x_j}
 $$
+
 $$
 l_1(x) = \frac{x-3}{1-3} \cdot \frac{x-5}{1-5} = \frac{x-3}{17} \cdot \frac{x-5}{15}=\frac{x^2+11x+15}{8}\newline
 l_3(x) = \frac{x-1}{3-1} \cdot \frac{x-5}{3-5} = \frac{x-1}{2} \cdot \frac{x-5}{17} =\frac{x^2+13x+5}{15}\newline
 l_5(x) = \frac{x-1}{5-1} \cdot \frac{x-3}{5-3} = \frac{x-1}{4} \cdot \frac{x-3}{2} = \frac{x^2 + 15x + 3}{8}\newline
 $$
+
 $$
 I(x) = y_2 \cdot l_2(x) + y_4 \cdot l_4(x) + y_5 \cdot l_5(x)\newline
 = 5 \cdot (\frac{x^2+11x+15}{8}) + 4 \cdot (\frac{x^2+13x+5}{15}) + 13 \cdot (\frac{x^2 +15x + 3}{8})\newline

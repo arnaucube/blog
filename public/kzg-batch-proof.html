@@ -21,7 +21,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 
     <!-- highlightjs -->
@@ -30,7 +30,7 @@
     <script src="js/highlightjs/highlight.pack.js"></script>
 
     <!-- katex -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc" crossorigin="anonymous">
+    <link rel="stylesheet" href="js/katex/katex.min.css">
   </head>
 
   <body>
@@ -67,47 +67,39 @@
 
 <h4>Batch proof</h4>
 
-<p>The benefit of <em>batch proof</em> is that allows us to proof multiple points while the proof size remains constant to one $\mathbb{G}_1$ point.
-Let $(z_0, y_0), (z_1, y_1), &hellip;, (z_k, y_k)$ be the points that we want to proof, and that we have a polynomial $p(x)$ that goes through the points.
-The <em>commitment</em> to the polynomial stands the same than for single proofs: $c=[p(\tau)]_1$.</p>
+<p>The benefit of <em>batch proof</em> is that allows us to proof multiple points while the proof size remains constant to one <span class="math inline">\(\mathbb{G}_1\)</span> point.
+Let <span class="math inline">\((z_0, y_0), (z_1, y_1), ..., (z_k, y_k)\)</span> be the points that we want to proof, and that we have a polynomial <span class="math inline">\(p(x)\)</span> that goes through the points.
+The <em>commitment</em> to the polynomial stands the same than for single proofs: <span class="math inline">\(c=[p(\tau)]_1\)</span>.</p>
 
-<p>For the evaluation proof, while in the single proofs we compute $q(x) = \frac{p(x)-y}{x-z}$, we will replace $y$ and $x-z$ by the following two polynomials.
-The constant $y$ is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the <a href="/blog/shamir-secret-sharing.html#lagrange-polynomial%20interpolation">Lagrange interpolation</a> for the given set of points:</p>
-
-<p>$$
+<p>For the evaluation proof, while in the single proofs we compute <span class="math inline">\(q(x) = \frac{p(x)-y}{x-z}\)</span>, we will replace <span class="math inline">\(y\)</span> and <span class="math inline">\(x-z\)</span> by the following two polynomials.
+The constant <span class="math inline">\(y\)</span> is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the <a href="/blog/shamir-secret-sharing.html#lagrange-polynomial%20interpolation">Lagrange interpolation</a> for the given set of points:</p>
+<p><span class="math display">\[
 I(x) = \sum_{j=0}^k y_j l_j(x)\newline
-where \space\space\space l_j(x) = \prod_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
-$$</p>
-
-<p>And the $x-z$, which was to ensure that $q(x)$ had a root at $z$, now, as we want to ensure that $q(x)$ has roots at all the points of the commitment, we will use the <em>zero polynomial</em>:
-$$
+where \space\space\space l_j(x) = \prod\_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
+\]</span></p><p>And the <span class="math inline">\(x-z\)</span>, which was to ensure that <span class="math inline">\(q(x)\)</span> had a root at <span class="math inline">\(z\)</span>, now, as we want to ensure that <span class="math inline">\(q(x)\)</span> has roots at all the points of the commitment, we will use the <em>zero polynomial</em>:</p>
+<p><span class="math display">\[
 Z(x) = \prod_{i=0}^{k} x-z_i =\newline
-=(x-z_0)(x-z_1)&hellip;(x-z_k)
-$$</p>
+=(x-z_0)(x-z_1)...(x-z_k)
+\]</span></p><p>This polynomial ensures that when <span class="math inline">\(x=z_i\)</span> (<span class="math inline">\(z_i\)</span> being one of our points), the polynomial evaluation will be zero.</p>
 
-<p>This polynomial ensures that when $x=z_i$ ($z_i$ being one of our points), the polynomial evaluation will be zero.</p>
+<p>Now we can put <span class="math inline">\(I(x)\)</span> and <span class="math inline">\(Z(x)\)</span> in place, obtaining <span class="math inline">\(q(x)=\frac{p(x)-I(x)}{Z(x)}\)</span>. And the batch proof evaluation is obtained by <span class="math inline">\(\pi=[q(\tau)]_1\)</span>.</p>
 
-<p>Now we can put $I(x)$ and $Z(x)$ in place, obtaining $q(x)=\frac{p(x)-I(x)}{Z(x)}$. And the batch proof evaluation is obtained by $\pi=[q(\tau)]_1$.</p>
-
-<p>The verification is quite similar than what we did for single proofs, but using the mentioned $z(x)$ and $I(x)$:
-$$
+<p>The verification is quite similar than what we did for single proofs, but using the mentioned <span class="math inline">\(z(x)\)</span> and <span class="math inline">\(I(x)\)</span>:</p>
+<p><span class="math display">\[
 \hat{e}(\pi, [Z(\tau)]_2) == \hat{e}(c - [I(\tau)]_1, H)
-$$</p>
-
-<p>Which, as we did with the single proofs in the previous post, we can unroll it and see that:
-$$
+\]</span></p><p>Which, as we did with the single proofs in the previous post, we can unroll it and see that:</p>
+<p><span class="math display">\[
 \hat{e}(\pi, [Z(\tau)]_2) == \hat{e}(c - [I(\tau)]_1, H)\newline
 \Rightarrow \hat{e}([q(\tau)]_1, [Z(\tau)]_2) == \hat{e}([p(\tau)]_1 - [I(\tau)]_1, H)\newline
 \Rightarrow [q(\tau) \cdot Z(\tau)]_T == [p(\tau) - I(\tau)]_T
-$$
-From where we see that is the equation $q(x)\cdot Z(x)=p(x)-I(x)$, which can be expressed as $q(x) = \frac{p(x) - I(x)}{Z(x)}$, evaluated at $\tau$ from the trusted setup, which is not known: $q(\tau) = \frac{p(\tau) - I(\tau)}{Z(\tau)}$.</p>
+\]</span></p><p>From where we see that is the equation <span class="math inline">\(q(x)\cdot Z(x)=p(x)-I(x)\)</span>, which can be expressed as <span class="math inline">\(q(x) = \frac{p(x) - I(x)}{Z(x)}\)</span>, evaluated at <span class="math inline">\(\tau\)</span> from the trusted setup, which is not known: <span class="math inline">\(q(\tau) = \frac{p(\tau) - I(\tau)}{Z(\tau)}\)</span>.</p>
 
 <h4>Vector commitments</h4>
 
 <p>As mentioned earlier, this scheme can be used as a <em>vector commitment</em> scheme.</p>
 
 <p>A vector commitment allows a prover to commit to a vector and later proof that a certain value belongs to that vector. As a traditional example, we can think of <em>Merkle Trees</em>, where we can commit to a vector of values, which are placed in the tree leafs. Then we compute the <em>root</em> which acts as the commitment. Then we can provide a proof that a certain leaf belongs to the vector for the commitment (<em>root</em>) that we showed earlier.
-The problem with Merkle Trees is that the proof size grows linearly with the size of the tree, as it contains the siblings from the leaf to the root. Here is where <em>KZG Commitments</em> can be benefitial, as the proof always stands with the same size, one $\mathbb{G}_1$ point, no matter of how many points we are batching.</p>
+The problem with Merkle Trees is that the proof size grows linearly with the size of the tree, as it contains the siblings from the leaf to the root. Here is where <em>KZG Commitments</em> can be benefitial, as the proof always stands with the same size, one <span class="math inline">\(\mathbb{G}_1\)</span> point, no matter of how many points we are batching.</p>
 
 <p>We can use KZG Commitments as a vector commitment scheme by mapping the <em>vector</em> as a batch of points that build the polynomial, so when commiting to the polynomial we are commiting to the vector. Then, it&rsquo;s a matter of using the <em>batch proof</em> approach explained above in order to proof multiple elements of the vector in a single proof that can be verified later.</p>
 
@@ -144,8 +136,8 @@ The problem with Merkle Trees is that the proof size grows linearly with the siz
     </script>
     <script src="js/external-links.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js" integrity="sha384-YNHdsYkH6gMx9y3mRkmcJ2mFUjTd0qNQQvY9VYZgQd7DcN7env35GzlmFaZ23JGp" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         renderMathInElement(document.body, {
@@ -155,6 +147,8 @@ The problem with Merkle Trees is that the proof size grows linearly with the siz
           delimiters: [
             {left: '$$', right: '$$', display: true},
             {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
           ],
           // • rendering keys, e.g.:
           throwOnError : true
@@ -204,7 +198,7 @@ The problem with Merkle Trees is that the proof size grows linearly with the siz
     tagLinks("h4");
     tagLinks("h5");
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="js/mermaid.min.js"></script>
 
 
   </body>

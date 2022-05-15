@@ -21,7 +21,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 
     <!-- highlightjs -->
@@ -30,7 +30,7 @@
     <script src="js/highlightjs/highlight.pack.js"></script>
 
     <!-- katex -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css" integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc" crossorigin="anonymous">
+    <link rel="stylesheet" href="js/katex/katex.min.css">
   </head>
 
   <body>
@@ -82,18 +82,18 @@ The main idea is that one party has a message and blinds it, then sends the blin
 
 <p>In this notes, we will cover the scheme proposed at <em>&ldquo;<a href="https://sci-hub.do/10.1109/ICCKE.2013.6682844">New Blind Signature Schemes Based on the (Elliptic Curve) Discrete Logarithm Problem</a>&rdquo;</em> paper by Hamid Mala &amp; Nafiseh Nezhadansari (thanks to <a href="https://twitter.com/feministPLT">Daira Hopwood</a> who mentioned this paper in a Telegram group).</p>
 
-<p>First of all, the <em>signer</em> generates their key pair by generating a random scalar $d \in \mathbb{Z}_n$ (where $\mathbb{Z}_n$ is the elliptic curve field), which will be the <em>private key</em>. From $d$ they can compute the <em>public key</em> by $Q = dG$, where $G$ is the generator point of $\mathbb{G}$ (the elliptic curve group).</p>
+<p>First of all, the <em>signer</em> generates their key pair by generating a random scalar <span class="math inline">\(d \in \mathbb{Z}_n\)</span> (where <span class="math inline">\(\mathbb{Z}_n\)</span> is the elliptic curve field), which will be the <em>private key</em>. From <span class="math inline">\(d\)</span> they can compute the <em>public key</em> by <span class="math inline">\(Q = dG\)</span>, where <span class="math inline">\(G\)</span> is the generator point of <span class="math inline">\(\mathbb{G}\)</span> (the elliptic curve group).</p>
 
-<p>Appart from their key pair, the <em>signer</em> will generate for each request of signature another random value $k \in \mathbb{Z}_n$, and its respective $R&rsquo;=kG$.</p>
+<p>Appart from their key pair, the <em>signer</em> will generate for each request of signature another random value <span class="math inline">\(k \in \mathbb{Z}_n\)</span>, and its respective <span class="math inline">\(R'=kG\)</span>.</p>
 
-<p>The <em>user</em> has a message <em>m</em> that which they want to get signed by the <em>signer</em> (without the <em>signer</em> knowing the content of <em>m</em>). In order to achieve that, the user will generate a coupe of random values $a, b \in \mathbb{Z}_n$, and from these parameters will compute the <em>blinding factor</em> $R=aR&rsquo; + bG = (ak + b)G$, and as $R$ is a point we can get $R = (x, y)$.
-The user can <em>blind</em> the message by computing $m&rsquo; = a^{-1} \cdot x \cdot h(m)$, where $h(m)$ is the hash of the message.</p>
+<p>The <em>user</em> has a message <em>m</em> that which they want to get signed by the <em>signer</em> (without the <em>signer</em> knowing the content of <em>m</em>). In order to achieve that, the user will generate a coupe of random values <span class="math inline">\(a, b \in \mathbb{Z}_n\)</span>, and from these parameters will compute the <em>blinding factor</em> <span class="math inline">\(R=aR' + bG = (ak + b)G\)</span>, and as <span class="math inline">\(R\)</span> is a point we can get <span class="math inline">\(R = (x, y)\)</span>.
+The user can <em>blind</em> the message by computing <span class="math inline">\(m' = a^{-1} \cdot x \cdot h(m)\)</span>, where <span class="math inline">\(h(m)\)</span> is the hash of the message.</p>
 
-<p>Then, the <em>user</em> sends the <em>blinded message</em> ($m&rsquo;$) to the <em>signer</em>, who will perform the <em>blind signature</em> by computing $s&rsquo; = d m&rsquo; + k$, which is sent back to the <em>user</em>.</p>
+<p>Then, the <em>user</em> sends the <em>blinded message</em> (<span class="math inline">\(m'\)</span>) to the <em>signer</em>, who will perform the <em>blind signature</em> by computing <span class="math inline">\(s' = d m' + k\)</span>, which is sent back to the <em>user</em>.</p>
 
-<p>The <em>user</em> can unblind the signature by $s = a s&rsquo; + b$, and the complete signature will be $(R, s)$.</p>
+<p>The <em>user</em> can unblind the signature by <span class="math inline">\(s = a s' + b\)</span>, and the complete signature will be <span class="math inline">\((R, s)\)</span>.</p>
 
-<p>And now, we are in a point where the signature can be verified by a third party for the <em>signer</em>&rsquo;s public key by checking $sG == R + x h(m) Q$.</p>
+<p>And now, we are in a point where the signature can be verified by a third party for the <em>signer</em>&rsquo;s public key by checking <span class="math inline">\(sG == R + x h(m) Q\)</span>.</p>
 
 <p><div style="text-align:center; font-size:80%;">
     <img style="padding:50px;max-width:100%;" src="img/posts/blind-signatures-ec/flow1.png" />
@@ -101,15 +101,13 @@ The user can <em>blind</em> the message by computing $m&rsquo; = a^{-1} \cdot x 
 </div>
 <br></p>
 
-<p>From the verification $sG == R + x h(m) Q$, we can unroll it and check that:</p>
-
-<p>$$
-\fbox{sG} = (a s&rsquo; + b) G = (a (d m&rsquo; + k) + b) G\newline
-= (a d m&rsquo; + ak + b) G = ((a d (a^{-1} x h(m))) + ak + b) G\newline
+<p>From the verification <span class="math inline">\(sG == R + x h(m) Q\)</span>, we can unroll it and check that:</p>
+<p><span class="math display">\[
+\fbox{sG} = (a s' + b) G = (a (d m' + k) + b) G\newline
+= (a d m' + ak + b) G = ((a d (a^{-1} x h(m))) + ak + b) G\newline
 = (d x h(m) + ak + b) G\newline
 = dG x h(m) + (ak + b)G = \fbox{R + x h(m) Q}
-$$</p>
-
+\]</span></p>
 <h4>Code</h4>
 
 <p>Here is an example of how this scheme on the <a href="https://en.bitcoin.it/wiki/Secp256k1">secp256k1</a> curve could be used using the implementation from <a href="https://github.com/arnaucube/go-blindsecp256k1">go-blindsecp256k1</a>.</p>
@@ -189,8 +187,8 @@ func main() {
     </script>
     <script src="js/external-links.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.js" integrity="sha384-YNHdsYkH6gMx9y3mRkmcJ2mFUjTd0qNQQvY9VYZgQd7DcN7env35GzlmFaZ23JGp" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous"></script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         renderMathInElement(document.body, {
@@ -200,6 +198,8 @@ func main() {
           delimiters: [
             {left: '$$', right: '$$', display: true},
             {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
           ],
           // • rendering keys, e.g.:
           throwOnError : true
@@ -249,7 +249,7 @@ func main() {
     tagLinks("h4");
     tagLinks("h5");
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="js/mermaid.min.js"></script>
 
 
   </body>

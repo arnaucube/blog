@@ -32,6 +32,7 @@ $$
 $$
 
 Which in additive representation is:
+
 $$
 (G, \tau G, \tau^2 G, ..., \tau^{n-1} G) \in \mathbb{G}_1\newline
 (H, \tau H, \tau^2 H, ..., \tau^{n-1} H) \in \mathbb{G}_2

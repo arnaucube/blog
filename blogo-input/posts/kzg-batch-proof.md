@@ -20,6 +20,7 @@ where \space\space\space l_j(x) = \prod\_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m
 $$
 
 And the $x-z$, which was to ensure that $q(x)$ had a root at $z$, now, as we want to ensure that $q(x)$ has roots at all the points of the commitment, we will use the *zero polynomial*:
+
 $$
 Z(x) = \prod_{i=0}^{k} x-z_i =\newline
 =(x-z_0)(x-z_1)...(x-z_k)
@@ -30,16 +31,19 @@ This polynomial ensures that when $x=z_i$ ($z_i$ being one of our points), the p
 Now we can put $I(x)$ and $Z(x)$ in place, obtaining $q(x)=\frac{p(x)-I(x)}{Z(x)}$. And the batch proof evaluation is obtained by $\pi=[q(\tau)]_1$.
 
 The verification is quite similar than what we did for single proofs, but using the mentioned $z(x)$ and $I(x)$:
+
 $$
 \hat{e}(\pi, [Z(\tau)]_2) == \hat{e}(c - [I(\tau)]_1, H)
 $$
 
 Which, as we did with the single proofs in the previous post, we can unroll it and see that:
+
 $$
 \hat{e}(\pi, [Z(\tau)]_2) == \hat{e}(c - [I(\tau)]_1, H)\newline
 \Rightarrow \hat{e}([q(\tau)]_1, [Z(\tau)]_2) == \hat{e}([p(\tau)]_1 - [I(\tau)]_1, H)\newline
 \Rightarrow [q(\tau) \cdot Z(\tau)]_T == [p(\tau) - I(\tau)]_T
 $$
+
 From where we see that is the equation $q(x)\cdot Z(x)=p(x)-I(x)$, which can be expressed as $q(x) = \frac{p(x) - I(x)}{Z(x)}$, evaluated at $\tau$ from the trusted setup, which is not known: $q(\tau) = \frac{p(\tau) - I(\tau)}{Z(\tau)}$.
 
 #### Vector commitments
