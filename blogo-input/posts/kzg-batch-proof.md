@@ -3,7 +3,7 @@
 
 > **Warning**: I want to state clearly that I'm not a mathematician, I'm just an amateur on math studying in my free time, and this article is just an attempt to try to sort the notes that I took while reading about the KZG Commitments.
 
-Last week I posted some *[notes on KZG Commitmens](https://arnaucube.com/blog/kzg-commitments.html)*, which overviews the scheme for single proofs. The current notes, try to overview the *batch proof* iteraton on KZG Commitments, and the *vector commitment* usage of it. Again (as in the previous post), big thanks to [Dankrad Feist](https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html) and [Alin Tomescu](https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html) for their articles which helped me to follow a bit the reasoing behind this, and again, I recommend spending the time reading their articles instead of this current notes.
+Last week I posted some *[notes on KZG Commitmens](https://arnaucube.com/blog/kzg-commitments.html)*, which overviews the scheme for single proofs. The current notes, try to overview the *batch proof* iteraton on KZG Commitments, and the *vector commitment* usage of it. Again (as in the previous post), big thanks to [Dankrad Feist](https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html) and [Alin Tomescu](https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html) for their articles which helped me to follow a bit the reasoing behind this, and again, I recommend spending the time **reading their articles ([1](https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html), [2](https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html)) instead of this current notes**.
 
 
 #### Batch proof
@@ -12,11 +12,11 @@ Let $(z_0, y_0), (z_1, y_1), ..., (z_k, y_k)$ be the points that we want to proo
 The *commitment* to the polynomial stands the same than for single proofs: $c=[p(\tau)]_1$.
 
 For the evaluation proof, while in the single proofs we compute $q(x) = \frac{p(x)-y}{x-z}$, we will replace $y$ and $x-z$ by the following two polynomials.
-The constant $y$ is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the [Lagrange interpolation](/blog/shamir-secret-sharing.html#lagrange-polynomial%20interpolation) for the given set of points:
+The constant $y$ is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the [Lagrange interpolation](shamir-secret-sharing.html#lagrange-polynomial%20interpolation) for the given set of points:
 
 $$
 I(x) = \sum_{j=0}^k y_j l_j(x)\newline
-where \space\space\space l_j(x) = \prod\_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
+where \space\space\space l_j(x) = \prod_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
 $$
 
 And the $x-z$, which was to ensure that $q(x)$ had a root at $z$, now, as we want to ensure that $q(x)$ has roots at all the points of the commitment, we will use the *zero polynomial*:
@@ -57,4 +57,4 @@ We can use KZG Commitments as a vector commitment scheme by mapping the *vector*
 #### Final note
 I'm fascinated by this scheme and its potential. One next rabbit hole (related to KZG Commitments) to look at, would be the [Plonk](https://vitalik.ca/general/2019/09/22/plonk.html) and other similar constructions. Also, another use case that is getting attention in the Ethereum community is the [*Verkle Trees*](https://vitalik.ca/general/2021/06/18/verkle.html).
 
-As in the previous notes, in order to try to put in practice the concepts, I've added the *batch proof* logic at https://github.com/arnaucube/kzg-commitments-study.
+As in the previous notes, in order to try to put in practice the concepts, I've added the implementation of the *batch proof* logic at the Go KZG implementation https://github.com/arnaucube/kzg-commitments-study.

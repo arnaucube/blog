@@ -19,6 +19,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="author" content="arnaucube">
 
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -26,7 +28,8 @@
 
     <!-- highlightjs -->
     <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
-    <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css">
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
     <script src="js/highlightjs/highlight.pack.js"></script>
 
     <!-- katex -->
@@ -39,7 +42,11 @@
     <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
                       style="height:50px;font-size:130%;">
       <div class="container">
-        <a href="/blog" style="color:#000;">Blog index</a>
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
         <div style="float:right;">
           <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
           <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
@@ -338,6 +345,9 @@
 
     <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
       <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
         <div class="row">
           <ul class="list-inline">
             <li><a href="https://twitter.com/arnaucube"
@@ -407,7 +417,7 @@
         console.log(theme);
       }
     </script>
-  <script>
+    <script>
     function tagLinks(tagName) {
       var tags = document.getElementsByTagName(tagName);
       for (var i=0, hElem; hElem =  tags[i]; i++) {

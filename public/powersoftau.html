@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="In the following notes we go over the ideas behind the Powers of Tau ceremony, how participants contribute and how the contributions are verified (logic & code). We focus on the Ethereum's upcoming KZG-Ceremony." />
+    <meta charset="utf-8">
+    <title> Implementing the powers of tau contributor - arnaucube - blog</title>
+    <meta name="title" content=" Implementing the powers of tau contributor - arnaucube - blog">
+    <meta name="description" content="In the following notes we go over the ideas behind the Powers of Tau ceremony, how participants contribute and how the contributions are verified (logic & code). We focus on the Ethereum's upcoming KZG-Ceremony.">
+
+    <meta property="og:title" content=" Implementing the powers of tau contributor - arnaucube - blog" />
+    <meta property="og:description" content="In the following notes we go over the ideas behind the Powers of Tau ceremony, how participants contribute and how the contributions are verified (logic & code). We focus on the Ethereum's upcoming KZG-Ceremony." />
+    <meta property="og:url" content="https://arnaucube.com/blog/powersoftau.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://arnaucube.com/blog/" />
+    <meta name="twitter:title" content=" Implementing the powers of tau contributor - arnaucube - blog">
+    <meta name="twitter:description" content="In the following notes we go over the ideas behind the Powers of Tau ceremony, how participants contribute and how the contributions are verified (logic & code). We focus on the Ethereum's upcoming KZG-Ceremony.">
+    <meta name="twitter:image" content="https://arnaucube.com/blog/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="arnaucube">
+
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="js/katex/katex.min.css">
+  </head>
+
+  <body>
+
+    <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+                      style="height:50px;font-size:130%;">
+      <div class="container">
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
+      </div>
+      <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
+    </nav>
+
+
+
+    <div class="container" style="margin-top:40px;max-width:800px;">
+      <h1>Implementing the powers of tau contributor</h1>
+
+<p><em>2023-01-02</em></p>
+
+<p>In the following notes we go over the ideas behind the <em>Powers of Tau</em> ceremony, how participants contribute and how the contributions are verified.</p>
+
+<p>The powers of tau are used in schemes such as KZG Commitments, and by consequence in the Plonk-KZG and in Verkle Trees use cases, which the later ones are in the Ethereum roadmap, but probably the ceremony output will be used in many other applications.
+The ceremony is named also as <em>Trusted Setup Ceremony</em>, and <em>SRS</em> (Structured Reference String) in Plonk and Sonic papers.</p>
+
+<p>Specifically these notes focus on the powers of tau ceremony that is <a href="https://github.com/ethereum/kzg-ceremony">being prepared in Ethereum</a>. For learning about the specifics of the powers of tau reasoning, I&rsquo;ve used the following two documents:</p>
+
+<ul>
+<li><a href="https://github.com/ethereum/kzg-ceremony/blob/main/KZG10-Ceremony-audit-report.pdf">KZG10-Ceremony-audit-report.pdf, by SECBIT Labs</a></li>
+<li><a href="https://arxiv.org/abs/1906.07221v1"><em>Why and how zkSNARKs work</em>, by Maksym Petkus</a></li>
+</ul>
+
+<p>Additionally, <a href="https://vitalik.ca/general/2022/03/14/trustedsetup.html">this article by Vitalik Buterin</a> explains the ideas behind trusted setups.</p>
+
+<p>The contents of these notes are distributed as follows:
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#the-main idea">The main idea</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#preliminaries">Preliminaries</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#participant-contribution">Participant contribution</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#proof-of correct computation">Proof of correct computation</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#contribution-verification">Contribution verification</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#full-flow">Full flow</a>
+<br><span style="margin-right:40px;"></span>
+    <a style="color:gray;" href="#conclusions">Conclusions</a></p>
+
+<p>Across these notes some snippets of Sage code are provided, the full Sage code can be found <a href="https://github.com/arnaucube/math/blob/master/powersoftau.sage">here</a>, and also a <a href="https://github.com/arnaucube/eth-kzg-ceremony-alt">full implementation in Go</a> which also contains a CLI to participate in the upcomming Ethereum KZG-Ceremony.</p>
+
+<h3>The main idea</h3>
+
+<p>The main idea is that we want to compute <span class="math inline">\(\tau^0, \tau^1, \tau^2, \ldots, \tau^{n-1}\)</span>, where <span class="math inline">\(\tau\)</span> should be unknown. In order to achieve this, we use some technics to combine different <span class="math inline">\(\tau\)</span>s from different contributors, in a way where we obtain the powers of a tau which is a combination of the different secret taus (<span class="math inline">\(\tau_{p_i}\)</span>) of the different participants.</p>
+
+<p>The <span class="math inline">\(\tau_{p_i}\)</span> should be secret for each participant, furthermore, it should be generated from some source of randomness and destroyed at the end.</p>
+
+<p>As we&rsquo;ve mentioned, we want to come up with the powers of tau where tau is a combination of the taus from all the participants, in a way where as long as there is at least one honest participant, which does not share their part of the final tau, the combined-tau can not be recovered and the ceremony is assumed to be safe.</p>
+
+<p>This is important, because if somebody has knowledge of the tau value, could generate fake proofs. As an example <a href="https://medium.com/qed-it/how-toxic-is-the-waste-in-a-zksnark-trusted-setup-9b250d59bdb4">this article by Kobi Gurkan</a> shows how fake BCTV14a proofs can be generated if tau is known.</p>
+
+<p>This is relevant in the context of <a href="https://arnaucube.com/blog/kzg-commitments.html">KZG Commitments</a>, specially in the roadmap of Ethereum.
+Ethereum will run the Ceremony which will be used at least in <a href="https://eips.ethereum.org/EIPS/eip-4844">EIP-4844</a>. That&rsquo;s why EF&rsquo;s is encouraging people to participate in various ways, as the Ceremony is considered safe as long as there is at least one honest participant, with the idea that if you participate, assuming that you consider yourself honest, you can consider the Ceremony safe.</p>
+
+<p>The output of the ceremony will be used in the Ethereum VerkleTrees, which uses KZG Commitments, but also it will be useful for Plonk-KZG proofs.</p>
+
+<p>So the best way to trust the output of the ceremony is by becoming a participant yourself!, Furhermore, by participating with your own code ^^</p>
+
+<h3>Preliminaries</h3>
+
+<p><strong>Pairing</strong><br>
+We will try to focus only in the concepts that we strictly need for the implementation, so we will treat Pairings as a black box with some simplified properties.</p>
+
+<p>For our use case, we use asymmetric bilinear pairings. We can see an asymmetric bilinear pairing as a function that maps an element from the group <span class="math inline">\(\mathbb{G_1}\)</span> and another one from <span class="math inline">\(\mathbb{G_2}\)</span> into an el element of the group <span class="math inline">\(\mathbb{G_T}\)</span>.</p>
+<p><span class="math display">\[e: \mathbb{G_1} \times \mathbb{G_2} \longrightarrow \mathbb{G_T}\]</span></p><p>For our use case, we&rsquo;ll focus only on one property, <em>bilinearity</em>.</p>
+
+<p>Let <span class="math inline">\(a, b \in \mathbb{F_q}\)</span>, <span class="math inline">\(\mathbb{G}_1 = \langle G \rangle\)</span> and <span class="math inline">\(\mathbb{G}_2 = \langle H \rangle~\)</span> (In other words, <span class="math inline">\(G\)</span> is the generator of <span class="math inline">\(\mathbb{G}_1\)</span>, and <span class="math inline">\(H\)</span> is the generator of <span class="math inline">\(\mathbb{G}_2\)</span>).</p>
+
+<p>Then, the bilinearity property tells us that</p>
+<p><span class="math display">\[e(a \cdot G,~b \cdot H) = e((a \cdot b) \cdot G,~H) = e(G,~(a \cdot b) \cdot H)\]</span></p><p>For better readability, we will use the following notation to represent the scalar point multiplication:</p>
+<p><span class="math display">\[[x]_1 = x \cdot G \in \mathbb{G}_1\newline
+[x]_2 = x \cdot H \in \mathbb{G}_2\]</span></p><p>So, our previous bilinearity example would look like</p>
+<p><span class="math display">\[e([a]_1, [b]_2) = e([a \cdot b]_1, [1]_2) = e([1]_1, [a \cdot b]_2)\]</span></p><p>In our practical use case, we use the <a href="https://hackmd.io/@benjaminion/bls12-381">BLS12-381</a> pairing, where <span class="math inline">\(\mathbb{G}_1, \mathbb{G}_2\)</span> are elliptic curve groups, thus the points <span class="math inline">\(G, H\)</span> are elliptic curve points.</p>
+
+<p><strong>Code</strong><br>
+For the code examples we&rsquo;ll use <a href="https://www.sagemath.org">SageMath</a>, but the code would look quite similar in Python, and the same logic can be implemented in any language.</p>
+
+<h3>Participant contribution</h3>
+
+<p>In the context of SRS (Structured Reference String), the powers of tau consist of an array containing the scalar multiplication of the generator point by each power of tau, eg. <span class="math inline">\(\tau^0 \cdot G,~\tau^1 \cdot G,~\tau^2 \cdot G,~\tau^3 \cdot G \ldots\)</span></p>
+
+<p>For our case, we&rsquo;ll generate <span class="math inline">\(n\)</span> powers of tau on <span class="math inline">\(\mathbb{G}_1\)</span>, and <span class="math inline">\(m\)</span> on <span class="math inline">\(\mathbb{G}_2\)</span>. We will denote the combination of both <span class="math inline">\(\mathbb{G}_1\)</span> and <span class="math inline">\(\mathbb{G}_2\)</span> powers of tau by SRS.</p>
+
+<p>Each participant will obtain the previous-participant generated SRS, which is formed by</p>
+<p><span class="math display">\[\{ [\tau^0]_1, [\tau^1]_1, [\tau^2]_2, \ldots, [\tau^{n-1}]_1 \},\\
+\{ [\tau^0]_2, [\tau^1]_2, [\tau^2]_2, \ldots, [\tau^{m-1}]_2 \}\]</span></p><p>for simplicity, we will represent it as</p>
+<p><span class="math display">\[\{~[~\tau^i]_1~\}^{n-1}_{i=0},~\{~[~\tau^i]_2~\}^{m-1}_{j=0}\]</span></p><p>Each participant generates their secret random tau <span class="math inline">\(\tau_p\)</span>, which to avoid confusion we will denote as <span class="math inline">\(p \in \mathbb{F}_r\)</span>. From it, the participant can compute <span class="math inline">\([p]_2 \in \mathbb{G}_2\)</span>.</p>
+
+<p>Then the participant proceeds to update the reference string (SRS), by multiplying each element by <span class="math inline">\(p^i\)</span>:</p>
+<p><span class="math display">\[\{~ p^i \cdot [~ \tau^i]_1~\}^{n-1}_{i=0},~\{~ p^i \cdot [~\tau^i]_2~\}^{m-1}_{j=0}\]</span></p><p>which, by the properties of scalar multiplication of a point, is equivalent to</p>
+<p><span class="math display">\[\{~ [~ (p \cdot \tau)^i]_1~\}^{n-1}_{i=0},~\{~ [~ (p \cdot \tau)^i]_2~\}^{m-1}_{j=0}\]</span></p><p>and we denote <span class="math inline">\(p \cdot \tau\)</span> as <span class="math inline">\(\tau'\)</span>, so we can write the previous expression as</p>
+<p><span class="math display">\[\{~[~\tau'^i]_1~\}^{n-1}_{i=0},~\{~[~\tau'^i]_2~\}^{m-1}_{j=0}\]</span></p><p>which is</p>
+<p><span class="math display">\[\{ [(\tau \cdot p)^0]_1, [(\tau \cdot p)^1]_1, [(\tau \cdot p)^2]_2, \ldots, [(\tau \cdot p)^{n-1}]_1 \},\\
+\{ [(\tau \cdot p)^0]_2, [(\tau \cdot p)^1]_2, [(\tau \cdot p)^2]_2, \ldots, [(\tau \cdot p)^{m-1}]_2 \}\]</span></p><p>Notice that the contributor does not know the previous <span class="math inline">\(\tau\)</span>, but can obtain <span class="math inline">\((\tau \cdot p)^i\)</span>.</p>
+
+<p><br><br>
+We can express the previous logic as follows:</p>
+
+<pre><code class="language-python">def compute_contribution(new_tau, prev_srs):
+    g1s = [None] * len(prev_srs[0])
+    g2s = [None] * len(prev_srs[1])
+    srs = [g1s, g2s]
+    Q = e.r
+
+    # compute [τ'⁰]₁, [τ'¹]₁, [τ'²]₁, ..., [τ'ⁿ⁻¹]₁, where n = len(prev_srs.G1s)
+    for i in range(0, len(prev_srs[0])):
+        srs[0][i] = (new_tau^i) * prev_srs[0][i]
+    
+    # compute [τ'⁰]₂, [τ'¹]₂, [τ'²]₂, ..., [τ'ⁿ⁻¹]₂, where n = len(prev_srs.G2s)
+    for i in range(0, len(prev_srs[1])):
+        srs[1][i] = (new_tau^i) * prev_srs[1][i]
+
+    return srs
+</code></pre>
+
+<h3>Proof of correct computation</h3>
+
+<p>The participant will compute the proof, which consists of</p>
+<p><span class="math display">\[\pi = ([\tau']_1,~[p]_2)\]</span></p><p>which is equivalent to <span class="math inline">\(\pi = (\tau' \cdot G,~p \cdot H) = ((p \cdot \tau) \cdot G,~p \cdot H)\)</span></p>
+
+<p>In the next section we will see how this is used to verify the contribution correct computation.</p>
+
+<p><br>
+We implement this logic as follows:</p>
+
+<pre><code class="language-python">def generate_proof(tau, prev_srs, new_srs):
+    # g_1^{tau'} = g_1^{p * tau} = SRS_G1s[1] * p
+    g1_ptau = prev_srs[0][1] * tau
+    # g_2^{p}
+    g2_p = tau * e.G2
+    return [g1_ptau, g2_p]
+</code></pre>
+
+<h3>Contribution verification</h3>
+
+<p>This is the interesting part. We want to check that the new SRS is well computed from the previous SRS together with the new tau. We want to avoid accepting contributions that do not follow the powers of tau structure, or that contain empty elements or that do not derive from the previous SRS.</p>
+
+<p>Following the powers of tau structure means that</p>
+<p><span class="math display">\[\tau'^{i+1} = \tau' \cdot \tau'^i ~~\forall~i \in [1, n-1]\]</span></p><p>And the relation between the new SRS and the previous SRS is</p>
+<p><span class="math display">\[\tau' = \tau \cdot p\]</span></p><p>where <span class="math inline">\(\tau\)</span> is the secret element from the previous SRS and <span class="math inline">\(p\)</span> is the secret one from the new SRS, resulting in the combined <span class="math inline">\(\tau'\)</span>.</p>
+
+<p>Now, we&rsquo;re interested into how we can check these relations in the context of the SRS elements. A new contribution can be verified as follows:</p>
+
+<ol>
+<li><p>Check that elements of the new SRS are non-empty, non-zero and in the correct prime order subgroups.</p></li>
+
+<li><p>Get the proof (<span class="math inline">\(\pi = ([\tau']_1, [p]_2)\)</span>), and confirm that the 1st element is equal to the element in position 1 <span class="math inline">\([\tau'^1]_1\)</span> of the new SRS (which corresponds to <span class="math inline">\(\tau'\)</span> powered to <span class="math inline">\(1\)</span>).</p></li>
+
+<li><p>Check that <span class="math inline">\(\tau'\)</span> (the new SRS) is correctly related to <span class="math inline">\(\tau\)</span> (the previous SRS).</p>
+
+<p>To check this, we rely on the pairing properties and we use the proof value generated by the contributor, which consists of <span class="math inline">\([p]_2\)</span></p>
+<p><span class="math display">\[e([\tau]_1, [p]_2) \stackrel{?}{=} e([\tau']_1, [1]_2)\]</span></p><p>We can see how this holds, as <span class="math inline">\(\tau' = p \cdot \tau\)</span>, and by the bilinear property of the pairing (see <a href="#preliminaries">Preliminearies section</a>) we have <span class="math inline">\(e(a \cdot G, b \cdot H) = e((a \cdot b) \cdot G, H)\)</span>, which in our notation is represented as</p>
+<p><span class="math display">\[e([a]_1, [b]_2) = e([a \cdot b]_1, [1]_2)\]</span></p><p>by applying this to our case we can see that:</p>
+<p><span class="math display">\[e([\tau]_1, [p]_2) = e([\tau \cdot p]_1, [1]_2) = e([\tau']_1, [1]_2)\]</span></p></li>
+
+<li><p>Check if the new SRS follows the powers of tau structure:</p>
+<p><span class="math display">\[e([\tau'^i]_1, [\tau']_2) \stackrel{?}{=} e([\tau'^{i+1}]_1, [1]_2) ~~ \forall ~i \in [1, n-1]\]</span></p><p><span class="math display">\[e([\tau']_1, [\tau'^j]_2) \stackrel{?}{=} e([1]_1, [\tau'^{j+1}]_2) ~~ \forall ~i \in [1, m-1]\]</span></p><p>Which, again, by the bilinarity property, we can see that</p>
+<p><span class="math display">\[e([\tau'^i]_1, [\tau']_2) = e([\tau'^{i+1}]_1, [1]_2)\]</span></p><p>is enforcing that <span class="math inline">\(\tau'^i \cdot \tau'^1 = \tau'^{i+1}\)</span>.</p>
+
+<p>And the same for</p>
+<p><span class="math display">\[e([\tau']_1, [\tau'^j]_2) = e([1]_1, [\tau'^{j+1}]_2)\]</span></p><p>which checks that <span class="math inline">\(\tau'^1 \cdot \tau'^j = \tau'^{j+1}\)</span>.</p>
+
+<p>With this check, we&rsquo;re ensuring that each power of tau of the SRS is consistent with the previous one.</p></li>
+</ol>
+
+<p><br><br>
+The complete verification function would look like</p>
+
+<pre><code class="language-python">def verify(prev_srs, new_srs, proof):
+    # 1. check that elements of the newSRS are valid points
+    for i in range(0, len(new_srs[0])-1):
+        assert new_srs[0][i] != None
+        assert new_srs[0][i] != e.E1(0)
+	assert new_srs[0][i] in e.E1
+    for i in range(0, len(new_srs[1])-1):
+        assert new_srs[1][i] != None
+        assert new_srs[1][i] != e.E1(0)
+	assert new_srs[1][i] in e.E2
+
+    # 2. check proof.G1PTau == newSRS.G1Powers[1]
+    assert proof[0] == new_srs[0][1]
+
+    # 3. check newSRS.G1s[1] (g₁^τ'), is correctly related to prev_srs.G1s[1] (g₁^τ)
+	#   e([τ]₁, [p]₂) == e([τ']₁, [1]₂)
+    assert e.pair(prev_srs[0][1], proof[1]) == e.pair(new_srs[0][1], e.G2)
+
+    # 4. check newSRS following the powers of tau structure
+    # i) e([τ'ⁱ]₁, [τ']₂) == e([τ'ⁱ⁺¹]₁, [1]₂), for i ∈ [1, n−1]
+    for i in range(0, len(new_srs[0])-1):
+        assert e.pair(new_srs[0][i], new_srs[1][1]) == e.pair(new_srs[0][i+1], e.G2)
+
+    # ii) e([τ']₁, [τ'ʲ]₂) == e([1]₁, [τ'ʲ⁺¹]₂), for j ∈ [1, m−1]
+    for i in range(0, len(new_srs[1])-1):
+        assert e.pair(new_srs[0][1], new_srs[1][i]) == e.pair(e.G1, new_srs[1][i+1])
+</code></pre>
+
+<h3>Full flow</h3>
+
+<p>Now that we have the three methods (<em>compute_contribution, generate_proof, verify</em>), it&rsquo;s a matter of using them.</p>
+
+<p>First let&rsquo;s add a couple of helpers to our code:</p>
+
+<pre><code class="language-python"># here we import the BLS12-381 pairing machinery
+load(&quot;bls12-381.sage&quot;) # file from https://github.com/arnaucube/math/blob/master/bls12-381.sage
+e = Pairing()
+
+# this method generates a SRS filled by the generator points of G1 &amp; G2
+def new_empty_SRS(nG1, nG2):
+    g1s = [None] * nG1
+    g2s = [None] * nG2
+    for i in range(0, nG1):
+        g1s[i] = e.G1
+    for i in range(0, nG2):
+        g2s[i] = e.G2
+
+    return [g1s, g2s]
+</code></pre>
+
+<p>Let&rsquo;s do the flow:</p>
+
+<pre><code class="language-python"># generate a fake previous-SRS
+(prev_srs) = new_empty_SRS(5, 3)
+
+# set a random value to be used for our tau
+random = 12345 # this would be a random value
+tau = e.F1(random)
+
+# compute our contribution, from the previous SRS and our tau
+new_srs = compute_contribution(tau, prev_srs)
+
+# generate a proof of correct computation of our contribution
+proof = generate_proof(tau, prev_srs, new_srs)
+
+# verify the proof for the given prev_srs and the new_srs
+verify(prev_srs, new_srs, proof)
+</code></pre>
+
+<h2>Conclusions</h2>
+
+<p>As we&rsquo;ve seen, we can prove and verify the correct computation of the new SRS with few operations.</p>
+
+<p>From here the next thing would be to implement the <a href="https://github.com/ethereum/kzg-ceremony-specs/blob/master/apiSpec/sequencerApi.yml">interaction with the Sequencer</a>, in order to authenticate the participant, fetch the previous SRS, and send the new SRS and proof.</p>
+
+<p>You can find the Sage example that we&rsquo;ve been using <a href="https://github.com/arnaucube/math/blob/master/powersoftau.sage">here</a>, and a full Go implementation here: <a href="https://github.com/arnaucube/eth-kzg-ceremony-alt">https://github.com/arnaucube/eth-kzg-ceremony-alt</a> (which uses <a href="https://github.com/kilic/bls12-381">Kilic&rsquo;s BLS12-381 implementation</a>, and includes also the interaction with the Sequencer and a CLI).
+There is also the EF&rsquo;s rust implementation <a href="https://github.com/crate-crypto/small-powers-of-tau">small-powers-of-tau</a> which has been audited. The same logic can be implemented in the language of your choice.
+<br><br></p>
+
+<p><a href="https://github.com/arnaucube/eth-kzg-ceremony-alt" target="_blank" title="https://github.com/arnaucube/eth-kzg-ceremony-alt">
+<img src="img/posts/powersoftau/kzg-ceremony-screenshot.png" style="width:100%;" />
+<span style="font-size:80%; color:gray;font-style:italic;">Screenshot of the eth-kzg-ceremony-alt CLI after contributing to the testnet ceremony.</a>
+</a></p>
+
+<p>Another interesting piece is the <em>randomness generation</em>. In our example, for simplicity, tau was hardcoded in the code, but in the real world case we would use some source of randomness to generate our secret value. Here you can get <a href="https://www.youtube.com/watch?v=I4cDAqeEmpU">as creative as you can</a>, and probably we will see some cool approaches for the Ethereum-KZG-Ceremony.</p>
+
+<p>This ceremony output is quite important, as it will be used in many applications once available. It will be used in the Ethereum protocol for the KZG Commitments on EIP-4844, but also on many other applications (some of them unrelated to Ethereum!). For example, any (up to the degree upperbound) Plonk-KZG deployment could reuse this ceremony to avoid needing to compute their own.
+So it&rsquo;s important to gather a notable amount of participants in the ceremony, and probably participate to it by yourself! (as if you&rsquo;re contributing you know that at least there has been one honest contribution (you)).</p>
+
+<p>You can find more info on the Ethereum&rsquo;s KZG Ceremony here: <a href="https://ceremony.ethereum.org">https://ceremony.ethereum.org</a> (which includes also a nice contributor webapp to participate from the browser).</p>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+                            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+      });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
+    </script>
+    <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
+    </script>
+    <script src="js/mermaid.min.js"></script>
+
+
+  </body>
+</html>
+

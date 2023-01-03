@@ -9,9 +9,19 @@
   "metaimg": "img/logoArnauCube.png",
   "posts": [
     {
+      "thumb": "powersoftau_thumb.md",
+      "md": "powersoftau.md",
+      "metadescr": "In the following notes we go over the ideas behind the Powers of Tau ceremony, how participants contribute and how the contributions are verified (logic & code). We focus on the Ethereum's upcoming KZG-Ceremony."
+    },
+    {
+      "thumb": "ringsig_thumb.md",
+      "md": "ringsig.md",
+      "metadescr": "Notes on ring signatures"
+    },
+    {
       "thumb": "shamir-secret-sharing_thumb.md",
       "md": "shamir-secret-sharing.md",
-      "metadescr": ""
+      "metadescr": "Overview of Langrange Polynomial interpolation and Shamir's secret sharing."
     },
     {
       "thumb": "kzg-batch-proof_thumb.md",
@@ -51,6 +61,7 @@
     "css",
     "img",
     "vendor",
-    "js"
+    "js",
+    "notes.html"
   ]
 }

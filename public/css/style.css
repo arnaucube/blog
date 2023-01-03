@@ -12,8 +12,14 @@ body {
   background-color: #111;
 }
 
-.dark-theme img, .dark-theme video, .dark-theme iframe, .dark-theme .onoffswitch-label, .dark-theme code {
+/* .dark-theme img, .dark-theme video, .dark-theme iframe, .dark-theme .onoffswitch-label, .dark-theme code { */
+.dark-theme img, .dark-theme video, .dark-theme iframe, .dark-theme .onoffswitch-label {
     filter: invert(100%) hue-rotate(180deg);
+}
+
+pre {
+  background-color: #fafafa;
+  padding: 10px;
 }
 
 a {

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="Notes on ring signatures" />
+    <meta charset="utf-8">
+    <title> bLSAG ring signatures overview - arnaucube - blog</title>
+    <meta name="title" content=" bLSAG ring signatures overview - arnaucube - blog">
+    <meta name="description" content="Notes on ring signatures">
+
+    <meta property="og:title" content=" bLSAG ring signatures overview - arnaucube - blog" />
+    <meta property="og:description" content="Notes on ring signatures" />
+    <meta property="og:url" content="https://arnaucube.com/blog/ringsig.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://arnaucube.com/blog/" />
+    <meta name="twitter:title" content=" bLSAG ring signatures overview - arnaucube - blog">
+    <meta name="twitter:description" content="Notes on ring signatures">
+    <meta name="twitter:image" content="https://arnaucube.com/blog/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="arnaucube">
+
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="js/katex/katex.min.css">
+  </head>
+
+  <body>
+
+    <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+                      style="height:50px;font-size:130%;">
+      <div class="container">
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
+      </div>
+      <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
+    </nav>
+
+
+
+    <div class="container" style="margin-top:40px;max-width:800px;">
+      <h1>bLSAG ring signatures overview</h1>
+
+<p><em>2022-07-20</em></p>
+
+<blockquote>
+<p>Note: I’m not a mathematician, I’m just an amateur on math. These notes are just an attempt to try to sort the notes that I took while learning abut bLSAG.</p>
+</blockquote>
+
+<p><br>
+bLSAG: Back&rsquo;s Linkable Spontaneous Anonymous Group signatures</p>
+
+<ul>
+<li>signer ambiguity</li>
+<li>linkability</li>
+<li>unforgeability</li>
+</ul>
+
+<h3>Setup</h3>
+
+<p>Let <span class="math inline">\(G\)</span> be the generator of an EC group.
+We use a hash function <span class="math inline">\(\mathcal{H}_p\)</span>, which maps to curve points in EC, and a normal hash <span class="math inline">\(\mathcal{H}_n\)</span>, which maps to <span class="math inline">\(\mathbb{Z}_p\)</span>.
+Signer&rsquo;s key pair: <span class="math inline">\(k_{\pi}\)</span>, s.t. <span class="math inline">\(K_{\pi} = k_{\pi} \cdot G \in \mathcal{R}\)</span>, with secret index <span class="math inline">\(\pi\)</span>.
+Set of Public Keys: <span class="math inline">\(\mathcal{R} = \{ K_1, K_2, \ldots, K_n \}\)</span></p>
+
+<pre><code class="language-python">def new_key():
+    k = F.random_element()
+    K = g * k # g is the generator of the EC group
+    return K
+</code></pre>
+
+<h3>Signature</h3>
+
+<ol>
+<li><p>compute key image: <span class="math inline">\(\tilde{K} = k_{\pi} \mathcal{H_p} ( K_{\pi}) \in G\)</span></p>
+
+<pre><code class="language-python">key_image = k * hashToPoint(K)
+</code></pre></li>
+
+<li><p>Generate <span class="math inline">\(\alpha \in^R \mathbb{Z}_p\)</span>, and <span class="math inline">\(r_i \in^R \mathbb{Z}_p\)</span>, for <span class="math inline">\(i \in \{1, 2, \ldots, n \}\)</span>, with <span class="math inline">\(i \neq \pi\)</span></p>
+
+<ul>
+<li><p><span class="math inline">\(r_i\)</span> is used for the fake responses</p>
+
+<pre><code class="language-python">a = F.random_element()
+r = [None] * len(R)
+for i in range(0, len(R)):
+    if i==pi:
+        continue
+
+
+    r[i] = mod(F.random_element(), p)
+</code></pre></li>
+</ul></li>
+
+<li><p>Compute <span class="math inline">\(c_{\pi + 1} = \mathcal{H}_n ( m, [\alpha G], [\alpha \mathcal{H}_p(K_{\pi})])\)</span></p>
+
+<pre><code class="language-python">c[pi1] = hash(R, m, a * g, hashToPoint(R[pi]) * a, p)
+</code></pre></li>
+
+<li><p>for <span class="math inline">\(i=\pi + 1, \pi +2, \ldots, n, 1, 2, \ldots, \pi -1\)</span>, calculate, replacing <span class="math inline">\(n+1 \rightarrow 1\)</span>
+$<span class="math inline">\(
+c_{i+1} = \mathcal{H}_n (m, [r_i G + c_i K_i], [r_i \mathcal{H}_p (K_i) + c_i \tilde{K}])
+\)</span>$</p>
+
+<ul>
+<li>Notice that (from step 3 &amp; 4):<br>
+<span class="math inline">\(\alpha \mathcal{H}_p (K_{\pi}) = r_{\pi} \mathcal{H}_p (K_{\pi}) + c_{\pi} \cdot (\tilde{K})\)</span>,<br>
+where <span class="math inline">\(\tilde{K}= k_{\pi} \mathcal{H_p} ( K_{\pi})\)</span>, so:<br>
+<span class="math inline">\(\alpha \mathcal{H}_p (K_{\pi}) = r_{\pi} \mathcal{H}_p (K_{\pi}) + c_{\pi} \cdot (k_{\pi} \mathcal{H}_p(K_{\pi}))\)</span><br>
+which is equal to,<br>
+<span class="math inline">\(\alpha \cdot \mathcal{H}_p (K_{\pi}) = (r_{\pi} + c_{\pi} \cdot k_{\pi}) \cdot \mathcal{H}_p(K_{\pi})\)</span><br>
+From where we can see: <span class="math inline">\(\alpha = r_{\pi} + c_{\pi} \cdot k_{\pi}\)</span><br>
+which we can rearrange to
+<span class="math inline">\(r_{\pi} = \alpha - c_{\pi} \cdot k_{\pi}\)</span>.<br><br></li>
+</ul>
+
+<pre><code class="language-python">for j in range(0, len(R)-1):
+    i = mod(pi1+j, len(R))
+    i1 = mod(pi1+j +1, len(R))
+
+
+    c[i1] = hash(R, m, r[i] * g + c[i] * R[i],
+            r[i] * hashToPoint(R[i]) + c[i] * key_image, p)
+</code></pre></li>
+
+<li><p>Define <span class="math inline">\(r_{\pi} = \alpha - c_{\pi} k_{\pi} \mod{p}\)</span></p></li>
+</ol>
+
+<pre><code class="language-python">r[pi] = mod(a - c[pi] * k, p)
+</code></pre>
+
+<p>Signature: <span class="math inline">\(\sigma(m) = (c_1, r_1, \ldots, r_n)\)</span>, with key image <span class="math inline">\(\tilde{K}\)</span> and ring <span class="math inline">\(\mathcal{R}\)</span>.
+- <span class="math inline">\(len(\sigma(m)) = 1+n\)</span></p>
+
+<pre><code class="language-python">return [c[0], r]
+</code></pre>
+
+<p><br><br><br></p>
+
+<h4>Step by step (simplified):</h4>
+
+<div style="overflow:auto;">
+<div style="width: 60%; float:left; height: 360px; overflow-y:scroll;">
+    
+<img src="img/posts/ring-sig/step00.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step00.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step01.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step02.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step03.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step04.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step05.png" style="width:100%;" />
+<img src="img/posts/ring-sig/step06.png" style="width:100%;" />
+    
+</div>
+
+<div style="width: 40%; float:right; margin-top:80px;">
+    
+    <ul>
+<li>Generate $r_i \in^R \mathbb{Z_p}$</li>
+<li>Compute $c_{i+1}$ from $r_i$</li>
+<li>Link $r_{\pi}$ with $c_{\pi}$</li>
+</ul>
+
+</div>
+</div>
+
+<p><em>You can scroll down the images through the step-by-step diagrams.</em></p>
+
+<p><br></p>
+
+<p>It reminds in some way to the approach to close a box like the one in the picture:
+<img src="img//posts/ring-sig/box-closed.png" alt="" /></p>
+
+<p><br><br><br></p>
+
+<h3>Verification</h3>
+
+<ol>
+<li><p>check <span class="math inline">\(p \tilde{K} \stackrel{?}{=} 0\)</span></p>
+
+<ul>
+<li>to ensure that <span class="math inline">\(\tilde{K} \in G\)</span> (and not in a cofactor group of <span class="math inline">\(G\)</span>)</li>
+</ul></li>
+
+<li><p>for <span class="math inline">\(i = 1, 2, \ldots, n\)</span>, replacing <span class="math inline">\(n+1 \rightarrow 1\)</span>
+$<span class="math inline">\(
+c'_{i+1} = \mathcal{H}_n (m, [r_i G + c_i K_i], [r_i \mathcal{H}_p (K_i) + c_i \tilde{K}])
+\)</span>$</p></li>
+
+<li><p>check <span class="math inline">\(c_1 \stackrel{?}{=} c'_i\)</span></p>
+
+<pre><code class="language-python">c[0] = c1
+for j in range(0, len(R)):
+    i = mod(j, len(R))
+    i1 = mod(j+1, len(R))
+    c[i1] = hash(R, m, r[i] * g + c[i] * R[i],
+                 r[i] * hashToPoint(R[i]) + c[i] * key_image, p)
+
+
+assert c1 == c[0]
+</code></pre></li>
+</ol>
+
+<p><br><br></p>
+
+<h2>Links</h2>
+
+<p>Toy implementation:</p>
+
+<ul>
+<li>Sage: <a href="https://github.com/arnaucube/math/blob/master/ring-signatures.sage">https://github.com/arnaucube/math/blob/master/ring-signatures.sage</a></li>
+<li>Rust: <a href="https://github.com/arnaucube/ring-signatures-rs">https://github.com/arnaucube/ring-signatures-rs</a></li>
+</ul>
+
+<p>Resources:</p>
+
+<ul>
+<li><em>&ldquo;Zero to Monero&rdquo;</em> - <a href="https://web.getmonero.org/library/Zero-to-Monero-2-0-0.pdf">https://web.getmonero.org/library/Zero-to-Monero-2-0-0.pdf</a>
+(section <em>&ldquo;3.4 Back’s Linkable Spontaneous Anonymous Group (bLSAG) signatures&rdquo;</em>)</li>
+</ul>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+                            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+      });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
+    </script>
+    <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
+    </script>
+    <script src="js/mermaid.min.js"></script>
+
+
+  </body>
+</html>
+

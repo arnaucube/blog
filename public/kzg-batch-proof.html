@@ -19,6 +19,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="author" content="arnaucube">
 
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -26,7 +28,8 @@
 
     <!-- highlightjs -->
     <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
-    <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css">
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
     <script src="js/highlightjs/highlight.pack.js"></script>
 
     <!-- katex -->
@@ -39,7 +42,11 @@
     <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
                       style="height:50px;font-size:130%;">
       <div class="container">
-        <a href="/blog" style="color:#000;">Blog index</a>
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
         <div style="float:right;">
           <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
           <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
@@ -63,7 +70,7 @@
 <p><strong>Warning</strong>: I want to state clearly that I&rsquo;m not a mathematician, I&rsquo;m just an amateur on math studying in my free time, and this article is just an attempt to try to sort the notes that I took while reading about the KZG Commitments.</p>
 </blockquote>
 
-<p>Last week I posted some <em><a href="https://arnaucube.com/blog/kzg-commitments.html">notes on KZG Commitmens</a></em>, which overviews the scheme for single proofs. The current notes, try to overview the <em>batch proof</em> iteraton on KZG Commitments, and the <em>vector commitment</em> usage of it. Again (as in the previous post), big thanks to <a href="https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html">Dankrad Feist</a> and <a href="https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html">Alin Tomescu</a> for their articles which helped me to follow a bit the reasoing behind this, and again, I recommend spending the time reading their articles instead of this current notes.</p>
+<p>Last week I posted some <em><a href="https://arnaucube.com/blog/kzg-commitments.html">notes on KZG Commitmens</a></em>, which overviews the scheme for single proofs. The current notes, try to overview the <em>batch proof</em> iteraton on KZG Commitments, and the <em>vector commitment</em> usage of it. Again (as in the previous post), big thanks to <a href="https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html">Dankrad Feist</a> and <a href="https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html">Alin Tomescu</a> for their articles which helped me to follow a bit the reasoing behind this, and again, I recommend spending the time <strong>reading their articles (<a href="https://dankradfeist.de/ethereum/2020/06/16/kate-polynomial-commitments.html">1</a>, <a href="https://alinush.github.io/2020/05/06/kzg-polynomial-commitments.html">2</a>) instead of this current notes</strong>.</p>
 
 <h4>Batch proof</h4>
 
@@ -72,10 +79,10 @@ Let <span class="math inline">\((z_0, y_0), (z_1, y_1), ..., (z_k, y_k)\)</span>
 The <em>commitment</em> to the polynomial stands the same than for single proofs: <span class="math inline">\(c=[p(\tau)]_1\)</span>.</p>
 
 <p>For the evaluation proof, while in the single proofs we compute <span class="math inline">\(q(x) = \frac{p(x)-y}{x-z}\)</span>, we will replace <span class="math inline">\(y\)</span> and <span class="math inline">\(x-z\)</span> by the following two polynomials.
-The constant <span class="math inline">\(y\)</span> is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the <a href="/blog/shamir-secret-sharing.html#lagrange-polynomial%20interpolation">Lagrange interpolation</a> for the given set of points:</p>
+The constant <span class="math inline">\(y\)</span> is replaced by a polynomial that has roots at all the points that we want to prove. This is achieved by computing the <a href="shamir-secret-sharing.html#lagrange-polynomial%20interpolation">Lagrange interpolation</a> for the given set of points:</p>
 <p><span class="math display">\[
 I(x) = \sum_{j=0}^k y_j l_j(x)\newline
-where \space\space\space l_j(x) = \prod\_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
+where \space\space\space l_j(x) = \prod_{0\leq m \leq k} \frac{x-x_m}{x_j - x_m}
 \]</span></p><p>And the <span class="math inline">\(x-z\)</span>, which was to ensure that <span class="math inline">\(q(x)\)</span> had a root at <span class="math inline">\(z\)</span>, now, as we want to ensure that <span class="math inline">\(q(x)\)</span> has roots at all the points of the commitment, we will use the <em>zero polynomial</em>:</p>
 <p><span class="math display">\[
 Z(x) = \prod_{i=0}^{k} x-z_i =\newline
@@ -107,12 +114,15 @@ The problem with Merkle Trees is that the proof size grows linearly with the siz
 
 <p>I&rsquo;m fascinated by this scheme and its potential. One next rabbit hole (related to KZG Commitments) to look at, would be the <a href="https://vitalik.ca/general/2019/09/22/plonk.html">Plonk</a> and other similar constructions. Also, another use case that is getting attention in the Ethereum community is the <a href="https://vitalik.ca/general/2021/06/18/verkle.html"><em>Verkle Trees</em></a>.</p>
 
-<p>As in the previous notes, in order to try to put in practice the concepts, I&rsquo;ve added the <em>batch proof</em> logic at <a href="https://github.com/arnaucube/kzg-commitments-study">https://github.com/arnaucube/kzg-commitments-study</a>.</p>
+<p>As in the previous notes, in order to try to put in practice the concepts, I&rsquo;ve added the implementation of the <em>batch proof</em> logic at the Go KZG implementation <a href="https://github.com/arnaucube/kzg-commitments-study">https://github.com/arnaucube/kzg-commitments-study</a>.</p>
 
     </div>
 
     <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
       <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
         <div class="row">
           <ul class="list-inline">
             <li><a href="https://twitter.com/arnaucube"
@@ -182,7 +192,7 @@ The problem with Merkle Trees is that the proof size grows linearly with the siz
         console.log(theme);
       }
     </script>
-  <script>
+    <script>
     function tagLinks(tagName) {
       var tags = document.getElementsByTagName(tagName);
       for (var i=0, hElem; hElem =  tags[i]; i++) {

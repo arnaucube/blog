@@ -4,19 +4,10 @@
   <head>
     <meta name="description" content="[blogo-summary]" />
     <meta charset="utf-8">
-    <title>[blogo-title]</title>
-    <meta name="title" content="[blogo-title]">
-    <meta name="description" content="[blogo-summary]">
+    <title>Notes</title>
+    <meta name="title" content="Notes">
+    <meta name="description" content="Notes">
 
-    <meta property="og:title" content="[blogo-title]" />
-    <meta property="og:description" content="[blogo-summary]" />
-    <meta property="og:url" content="[blogo-link]" />
-    <meta property="og:type" content="article" />
-    <meta property="og:image" content="[blogo-img]" />
-    <meta name="twitter:title" content="[blogo-title]">
-    <meta name="twitter:description" content="[blogo-summary]">
-    <meta name="twitter:image" content="[blogo-img]">
-    <meta name="twitter:card" content="summary_large_image">
     <meta name="author" content="arnaucube">
 
     <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
@@ -25,15 +16,6 @@
 
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
-    <!-- highlightjs -->
-    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
-    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
-    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
-    <script src="js/highlightjs/highlight.pack.js"></script>
-
-    <!-- katex -->
-    <link rel="stylesheet" href="js/katex/katex.min.css">
   </head>
 
   <body>
@@ -61,14 +43,23 @@
 
 
 
-    <div class="container" style="margin-top:40px;max-width:800px;">
-      [blogo-content]
-    </div>
+    <!-- in markdown which later is converted to html -->
+    <div id="markdown" class="container" style="margin-top:40px;max-width:800px;">
+### Notes:
+Usually while reading papers I take handwritten notes, this section contains some of them re-written to LaTeX.
+The notes are not complete, don’t include all the steps neither the explanations neither most of the proofs.
+I use these notes to revisit the concepts after some time of reading the paper.
+            - [Notes on Halo](https://raw.githubusercontent.com/arnaucube/math/master/notes_halo.pdf)
+            - [Notes on Sigma protocol and OR proofs](https://raw.githubusercontent.com/arnaucube/math/master/sigma-or-notes.pdf)
+            - [Notes on BLS signatures](https://raw.githubusercontent.com/arnaucube/math/master/notes_bls-sig.pdf)
+            - [Notes on Sonic](https://raw.githubusercontent.com/arnaucube/math/master/notes_sonic.pdf)
+            - [Notes on Weil Pairing](https://raw.githubusercontent.com/arnaucube/math/master/pairings.pdf)
+</div>
 
     <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
       <div class="container">
         <br>
-        <a href="/blog">Go to main</a>
+        <a href="/blog">Back to the blog</a>
         <br><br>
         <div class="row">
           <ul class="list-inline">
@@ -82,19 +73,9 @@
             </li>
           </ul>
         </div>
-        <div class="row" style="display:inline-block;">
-          Blog made with <a href="http://github.com/arnaucube/blogo/"
-                            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
-        </div>
       </div>
     </footer>
 
-    <script>
-    </script>
-    <script src="js/external-links.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-    <script defer src="js/katex/katex.min.js"></script>
-    <script defer src="js/katex/auto-render.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
         renderMathInElement(document.body, {
@@ -139,24 +120,15 @@
         console.log(theme);
       }
     </script>
+
+    <script src="js/drawdown.js"></script>
+
     <script>
-    function tagLinks(tagName) {
-      var tags = document.getElementsByTagName(tagName);
-      for (var i=0, hElem; hElem =  tags[i]; i++) {
-        if (hElem.parentNode.className=="row postThumb") {
-          continue;
-        }
-        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
-        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
-      }
-    }
-    tagLinks("h2");
-    tagLinks("h3");
-    tagLinks("h4");
-    tagLinks("h5");
+      let content = document.getElementById("markdown").innerHTML;
+      let md = markdown(content);
+      document.getElementById("markdown").innerHTML = md;
     </script>
-    <script src="js/mermaid.min.js"></script>
 
-
+    <script src="js/external-links.js"></script>
   </body>
 </html>
