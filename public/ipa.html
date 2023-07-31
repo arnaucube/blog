@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="This post overviews the IPA polynomial commitment described in the Halo paper, first by providing an overview on the protocol, then by doing a step-by-step example with small values, following the style done in the 'Plonk by hand series' from Joshua Fitzgerald, and later by providing a Sage implementation of the protocol." />
+    <meta charset="utf-8">
+    <title> IPA polynomial commitment by hand - arnaucube - blog</title>
+    <meta name="title" content=" IPA polynomial commitment by hand - arnaucube - blog">
+    <meta name="description" content="This post overviews the IPA polynomial commitment described in the Halo paper, first by providing an overview on the protocol, then by doing a step-by-step example with small values, following the style done in the 'Plonk by hand series' from Joshua Fitzgerald, and later by providing a Sage implementation of the protocol.">
+
+    <meta property="og:title" content=" IPA polynomial commitment by hand - arnaucube - blog" />
+    <meta property="og:description" content="This post overviews the IPA polynomial commitment described in the Halo paper, first by providing an overview on the protocol, then by doing a step-by-step example with small values, following the style done in the 'Plonk by hand series' from Joshua Fitzgerald, and later by providing a Sage implementation of the protocol." />
+    <meta property="og:url" content="https://arnaucube.com/blog/ipa.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://arnaucube.com/blog/" />
+    <meta name="twitter:title" content=" IPA polynomial commitment by hand - arnaucube - blog">
+    <meta name="twitter:description" content="This post overviews the IPA polynomial commitment described in the Halo paper, first by providing an overview on the protocol, then by doing a step-by-step example with small values, following the style done in the 'Plonk by hand series' from Joshua Fitzgerald, and later by providing a Sage implementation of the protocol.">
+    <meta name="twitter:image" content="https://arnaucube.com/blog/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="arnaucube">
+
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="js/katex/katex.min.css">
+  </head>
+
+  <body>
+
+    <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+                      style="height:50px;font-size:130%;">
+      <div class="container">
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
+      </div>
+      <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
+    </nav>
+
+
+
+    <div class="container" style="margin-top:40px;max-width:800px;">
+      <h1>IPA polynomial commitment by hand</h1>
+
+<p><em>2023-04-06</em></p>
+
+<p><em>This post was originally written on July 2022 during the &lsquo;0xPARC Halo2 learning group&rsquo;, posting it now as it was forgotten in a hackmd.</em></p>
+
+<h2>Context</h2>
+
+<p>During this past month (June 13 - July 8, 2022) I&rsquo;ve been attending at the <a href="https://0xparc.org/blog/halo2-learning-group">Halo2 Learning Group</a> that <a href="https://0xparc.org">0xPARC</a> organized. It has been an amazing experience and I&rsquo;ve learned a lot from aweseome people. For the past two weeks, the participants were encouraged to do a project related to the contents of the sessions, after a bit of doubts, I&rsquo;ve chosen to do it about the Inner Product Argument used in Halo2 for the polynomial commitments, which is described in the <a href="https://eprint.iacr.org/2019/1021.pdf">Halo paper</a>.</p>
+
+<p>I&rsquo;ve used this opportunity to study how IPA works, reading it from the <a href="https://eprint.iacr.org/2019/1021.pdf">Halo paper</a> but also from the <a href="https://eprint.iacr.org/2017/1066.pdf">Bulletproofs paper</a> and the good explanations from the <a href="https://doc-internal.dalek.rs/bulletproofs/notes/inner_product_proof/index.html">Dalek documentation</a> and the <a href="https://dankradfeist.de/ethereum/2021/07/27/inner-product-arguments.html">Dankrad Feist article</a>.</p>
+
+<p>Thanks to <a href="https://twitter.com/yezhang1998">Ye Zhang</a>, <a href="https://twitter.com/therealyingtong">Ying Tong</a> and <a href="https://twitter.com/shenhaichen">Haichen Shen</a> for their advise on the papers and resources to study. Also thanks to <a href="https://github.com/davidnevadoc">David Nevado</a> for the typos found in this post.</p>
+
+<h2>Intro</h2>
+
+<p>This article overviews the IPA construction described in the <a href="https://eprint.iacr.org/2019/1021.pdf">Halo paper</a>, by doing a step-by-step example with small numbers, following the style done in the <em><a href="https://research.metastate.dev/plonk-by-hand-part-1/">&ldquo;PLONK by Hand series&rdquo;</a></em> by <a href="https://twitter.com/lopeetall">Joshua Fitzgerald</a>. This post does not cover the amortization technique proposed in the Halo paper.</p>
+
+<p>Together with this by-hand step-by-step example, I&rsquo;ve implemented it in Sage and also in Rust using arkworks:</p>
+
+<ul>
+<li>Sage: <a href="https://github.com/arnaucube/math/blob/master/ipa.sage">https://github.com/arnaucube/math/blob/master/ipa.sage</a></li>
+<li>Rust: <a href="https://github.com/arnaucube/ipa-rs">https://github.com/arnaucube/ipa-rs</a></li>
+</ul>
+
+<p>Also, if you&rsquo;re looking for other Sage/Python IPA implementations, you can find one in the <a href="https://github.com/darkrenaissance/darkfi/tree/master/script/research/zk/bltprf">Darkfi/research repo</a> and another one in the <a href="https://github.com/ethereum/research/tree/master/bulletproofs">Ethereum/research repo</a>.</p>
+
+<p>This post is divided in 3 parts:</p>
+
+<ol>
+<li><a href="#ipa-overview">IPA overview</a></li>
+<li><a href="#ipa-by%20hand">IPA by hand</a></li>
+<li><a href="#now-let%E2%80%99s%20do%20a%20simple%20implementation">IPA Sage implementation</a></li>
+</ol>
+
+<h2>IPA overview</h2>
+
+<p><em>This section provides an overview on the IPA scheme, for more details it is recommended to go directly to the earlier mentioned papers and articles.</em></p>
+
+<p>The scheme objective is to allow the prover to prove that the polynomial <span class="math inline">\(p(X)\)</span> from the commitment <span class="math inline">\(P\)</span>, evaluates to <span class="math inline">\(v\)</span> at <span class="math inline">\(x\)</span>, and that <span class="math inline">\(deg(p(X)) \leq d-1\)</span>.</p>
+
+<div style="font-size:80%;background:#f9f9f9;padding-left:10px;">
+
+Notation:
+<ul>
+    <li>Scalar mul: $[a]G$, where $a$ is a scalar and $G \in \mathbb{G}$</li>
+    <li>Inner product: $<\overrightarrow{a}, \overrightarrow{b}> = a_0 b_0 + a_1 b_1 + \ldots + a_{n-1} b_{n-1}$</li>
+    <li>Multiscalar mul: $<\overrightarrow{a}, \overrightarrow{G}> = [a_0] G_0 + [a_1] G_1 + \ldots + [a_{n-1}] G_{n-1}$</li>
+</ul>
+
+</div>
+
+<p>We have a transparent setup consisting of a random vector of points <span class="math inline">\(\overrightarrow{G} \in^r \mathbb{G}^d\)</span>, and a point <span class="math inline">\(H \in^r \mathbb{G}\)</span>.</p>
+
+<p>The prover commits to the polynomial <span class="math inline">\(p(X) = \sum^{d-1}_0 a_i x^i\)</span> by a Pedersen vector commitment</p>
+<p><span class="math display">\[P=&lt;\overrightarrow{a}, \overrightarrow{G}&gt; + [r]H\]</span></p><p>where <span class="math inline">\(\overrightarrow{a}\)</span> is the vector of the coefficients of <span class="math inline">\(p(X)\)</span>. And sets <span class="math inline">\(v\)</span> such that</p>
+<p><span class="math display">\[v=&lt;\overrightarrow{a}, \overrightarrow{b} &gt; = &lt;\overrightarrow{a}, \{1, x, x^2, \ldots, x^{d-1} \} &gt;\]</span></p><p>We can see that computing <span class="math inline">\(v\)</span> is the equivalent to evaluating <span class="math inline">\(p(X)\)</span> at <span class="math inline">\(x\)</span> (<span class="math inline">\(p(x)=v\)</span>).</p>
+
+<p>Both parties know <span class="math inline">\(P\)</span>, point <span class="math inline">\(x\)</span> and claimed evaluation <span class="math inline">\(v\)</span>. For <span class="math inline">\(U \in^r \mathbb{G}\)</span>.</p>
+
+<p>Now, for <span class="math inline">\(k\)</span> rounds (<span class="math inline">\(d=2^k\)</span>, from <span class="math inline">\(j=k\)</span> to <span class="math inline">\(j=1\)</span>):</p>
+
+<ul>
+<li><p>Prover sets random blinding factors: <span class="math inline">\(l_j, r_j \in \mathbb{F}_p\)</span></p></li>
+
+<li><p>Prover computes</p>
+<p><span class="math display">\[L_j = &lt; \overrightarrow{a}_{lo}, \overrightarrow{G}_{hi}&gt; + [l_j] H + [&lt; \overrightarrow{a}_{lo}, \overrightarrow{b}_{hi}&gt;] U\\
+R_j = &lt; \overrightarrow{a}_{hi}, \overrightarrow{G}_{lo}&gt; + [r_j] H + [&lt; \overrightarrow{a}_{hi}, \overrightarrow{b}_{lo}&gt;] U\]</span></p></li>
+
+<li><p>Verifier sends random challenge <span class="math inline">\(u_j\)</span></p></li>
+
+<li><p>Prover computes the halved vectors for next round:</p>
+<p><span class="math display">\[\overrightarrow{a} \leftarrow \overrightarrow{a}_{hi} \cdot u_j^{-1} + \overrightarrow{a}_{lo} \cdot u_j\\
+\overrightarrow{b} \leftarrow \overrightarrow{b}_{lo} \cdot u_j^{-1} + \overrightarrow{b}_{hi} \cdot u_j\\
+\overrightarrow{G} \leftarrow \overrightarrow{G}_{lo} \cdot u_j^{-1} + \overrightarrow{G}_{hi} \cdot u_j\]</span></p></li>
+</ul>
+
+<p>After final round, <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span> are each of length 1.</p>
+
+<p>Verifier can compute <span class="math inline">\(G = \overrightarrow{G}_0 = &lt; \overrightarrow{s}, \overrightarrow{G} &gt;\)</span>, and <span class="math inline">\(b = \overrightarrow{b}_0 = &lt; \overrightarrow{s}, \overrightarrow{b} &gt;\)</span>,
+where <span class="math inline">\(\overrightarrow{s}\)</span> is the binary counting structure:</p>
+<p><span class="math display">\[
+s = (u_1^{-1} ~ u_2^{-1} \cdots ~u_k^{-1},\\
+~~~~~~~~~u_1 ~~~ u_2^{-1} ~\cdots ~u_k^{-1},\\
+~~~~~~~~~u_1^{-1} ~~ u_2 ~~\cdots ~u_k^{-1},\\
+~~~~~~~~~~~~~~~~~\vdots\\
+~~~~~~~~~u_1 ~~~~ u_2 ~~\cdots ~u_k)
+\]</span></p><p>Also, the verifier can computes <span class="math inline">\(P'\)</span> as</p>
+<p><span class="math display">\[P' = P + [v] U\]</span></p><p>which under the hood is equivalent to <span class="math inline">\(P'= &lt;\overrightarrow{a}, G&gt; + [r]H + [v] U\)</span>.</p>
+
+<p>Then, Verifier checks:</p>
+<p><span class="math display">\[[a]G + [r'] H + [ab] U == P' + \sum_{j=1}^k ( [u_j^2] L_j + [u_j^{-2}] R_j)\]</span></p><p>where the <span class="math inline">\(r' = r + \sum_{j=1}^k (l_j u_j^2 + r_j u_j^{-2})\)</span>.</p>
+
+<p>We can see how this match if we unfold it (added colors to provide a bit of intuition on the relation of values):</p>
+<p><span class="math display">\[
+\textcolor{brown}{[a]G} + \textcolor{cyan}{[r'] H} + \textcolor{magenta}{[ab] U}
+==
+\textcolor{blue}{P'} + \sum_{j=1}^k ( \textcolor{violet}{[u_j^2] L_j} + \textcolor{orange}{[u_j^{-2}] R_j})
+\]</span></p><p><span class="math display">\[
+LHS = \textcolor{brown}{[a]G} + \textcolor{cyan}{[r'] H} + \textcolor{magenta}{[ab] U}\\
+ = \textcolor{brown}{&lt; \overrightarrow{a}, \overrightarrow{G} &gt;}\\
++ \textcolor{cyan}{[r + \sum_{j=1}^k (l_j \cdot u_j^2 + r_j u_j^{-2})] \cdot H}\\
++ \textcolor{magenta}{&lt; \overrightarrow{a}, \overrightarrow{b} &gt; U}
+\]</span></p><p><span class="math display">\[
+RHS = \textcolor{blue}{P'} + \sum_{j=1}^k ( \textcolor{violet}{[u_j^2] L_j} + \textcolor{orange}{[u_j^{-2}] R_j})\\
+= \textcolor{blue}{&lt; \overrightarrow{a}, \overrightarrow{G}&gt;}\\
++ \textcolor{blue}{[r] H}\\
++ \sum_{j=1}^k (
+\textcolor{violet}{[u_j^2] \cdot &lt;\overrightarrow{a}_{lo}, \overrightarrow{G}_{hi}&gt; + [l_j] H + [&lt;\overrightarrow{a}_{lo}, \overrightarrow{b}_{hi}&gt;] U}\\
+\textcolor{orange}{+ [u_j^{-2}] \cdot &lt;\overrightarrow{a}_{hi}, \overrightarrow{G}_{lo}&gt; + [r_j] H + [&lt;\overrightarrow{a}_{hi}, \overrightarrow{b}_{lo}&gt;] U})\\
+ + \textcolor{blue}{[&lt; \overrightarrow{a}, \overrightarrow{b} &gt;] U}\\
+\]</span></p><p><br><br></p>
+
+<p>In the following diagram we can see a high level overview of the steps in the protocol:
+<img src="img/posts/ipa/sequence.png" alt="" /></p>
+
+<!--
+<pre class="mermaid" style="width:50%;background:#ffffff!important;margin-left:auto;margin-right:auto;">
+%%{init:{'theme':'neutral'}}%%
+
+sequenceDiagram
+participant P as Prover
+participant V as Verifier
+
+P->>P: knows p(X)
+P->>P: commit to p(X), P
+P->>V: P
+V->>V: rand  x, U, u
+V->>P: x, U, u
+P->>P: eval v=p(x), gen proof
+P->>V: proof, a, Lⱼ, Rⱼ, v
+V->>V: verify(proof, P, a, x, v, Lⱼ, Rⱼ)
+</pre>
+-->
+
+<h2>IPA by hand</h2>
+
+<p><em>This section provides a step-by-step example of IPA with small values, following the style done in the <a href="https://research.metastate.dev/plonk-by-hand-part-1/">&ldquo;PLONK by Hand series&rdquo;</a> by <a href="https://twitter.com/lopeetall">Joshua Fitzgerald</a>.</em></p>
+
+<p>We will use the Elliptic curve <span class="math inline">\(E(\mathbb{F}_{19}): y^2 = x^3 + 3\)</span>.</p>
+
+<p>In the same way that was done in the <a href="https://research.metastate.dev/plonk-by-hand-part-1/"><em>Plonk by hand series</em></a>, let&rsquo;s compute all the points from our generator <span class="math inline">\(G=(1,2) \in E(\mathbb{F}_{19})\)</span>. We&rsquo;ll start with <span class="math inline">\(2G\)</span>:</p>
+
+<p><img src="img/posts/ipa/00.png" alt="" /></p>
+
+<p>Combining point doubling and inverses for <span class="math inline">\(4G, 6G, 8G, \ldots\)</span>, together with <a href="https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Point_addition">point addition</a> we obtain all the points of our curve:
+<img src="img/posts/ipa/01.png" alt="" /></p>
+
+<p>As we find out, <span class="math inline">\(14 G = G\)</span>, thus <span class="math inline">\(ord(G)_{E(\mathbb{F}_{19})} = 13\)</span>, so we will work in <span class="math inline">\(\mathbb{F}_{13}\)</span>.</p>
+
+<p>Before we start the interaction of the protocol, we need to setup some values. First of all, we need to define the degree of the polynomial with which we want to work, we will use the degree <span class="math inline">\(d=8\)</span> to make manual computations shorter.</p>
+
+<p>We set up the vector <span class="math inline">\(\overrightarrow{G}\)</span> with random points (without known DLOG between them), and also a random point <span class="math inline">\(H\)</span>:
+<img src="img/posts/ipa/02.png" alt="" /></p>
+
+<p>We define our polynomial <span class="math inline">\(p(X)\)</span>, to which we want to commit, and let <span class="math inline">\(\overrightarrow{a}\)</span> be its coefficients:
+<img src="img/posts/ipa/03.png" alt="" /></p>
+
+<p>Verifier chooses a random challenge <span class="math inline">\(r\)</span>:
+<img src="img/posts/ipa/04.png" alt="" /></p>
+
+<p>Prover commits to <span class="math inline">\(\overrightarrow{a}\)</span>:
+<img src="img/posts/ipa/05.png" alt="" /></p>
+
+<p>We are following the Halo paper, which describes an IPA variant in which the second vector <span class="math inline">\(\overrightarrow{b}\)</span> is fixed for the given choice of <span class="math inline">\(x\)</span>, being <span class="math inline">\(\overrightarrow{b} = {1, x, x^2, x^3, \ldots, x^{d-1}}\)</span>.</p>
+
+<p>We will use <span class="math inline">\(x=3\)</span>, being <span class="math inline">\(\overrightarrow{b}\)</span>:
+<img src="img/posts/ipa/06.png" alt="" /></p>
+
+<p>Now the prover computes the <em>inner product</em> between <span class="math inline">\(\overrightarrow{a}\)</span> and <span class="math inline">\(\overrightarrow{b}\)</span>, using
+<img src="img/posts/ipa/07.png" alt="" /></p>
+
+<p>Which, since our choose of <span class="math inline">\(\overrightarrow{b}\)</span>, it is the equivalent than evaluating <span class="math inline">\(p(X)\)</span> at <span class="math inline">\(x=3\)</span>:
+<img src="img/posts/ipa/08.png" alt="" /></p>
+
+<p>Now the verifier generates the random challenges <span class="math inline">\(u_j \in \mathbb{I}\)</span> and <span class="math inline">\(U \in E\)</span>:
+<img src="img/posts/ipa/09.png" alt="" /></p>
+
+<p>In a non-interactive version of the protocol, these values would be obtained by hashing the transcript (<a href="https://en.wikipedia.org/wiki/Fiat%E2%80%93Shamir_heuristic">Fiat-Shamir</a>).</p>
+
+<p>The prover computes P&rsquo;
+<img src="img/posts/ipa/10.png" alt="" />
+Followed by <span class="math inline">\(k=log(d)\)</span> (3) rounds explained below.</p>
+
+<h4>Rounds</h4>
+
+<p>For each round, from <span class="math inline">\(k-1\)</span> to <span class="math inline">\(0\)</span>, prover will compute:</p>
+<p><span class="math display">\[
+L_j = \langle \overrightarrow{a}_{lo}, \overrightarrow{G}_{hi} \rangle + [l_j] H + [\langle \overrightarrow{a}_{lo}, \overrightarrow{b}_{hi} \rangle] U
+\]</span></p><p><span class="math display">\[
+R_j = \langle \overrightarrow{a}_{hi}, \overrightarrow{G}_{lo} \rangle + [r_j] H + [\langle \overrightarrow{a}_{hi}, \overrightarrow{b}_{lo} \rangle] U
+\]</span></p>
+<h5>Round j=2:</h5>
+
+<p>So, first we will split <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span> into their respective left and right halves (<span class="math inline">\(\overrightarrow{v}_{lo}, \overrightarrow{v}_{hi}\)</span>):
+<img src="img/posts/ipa/11.png" alt="" /></p>
+
+<p>Set random blinding factors <span class="math inline">\(l_2, r_2\)</span>:
+<img src="img/posts/ipa/12.png" alt="" /></p>
+
+<p>And let&rsquo;s calculate <span class="math inline">\(L_2\)</span>:
+<img src="img/posts/ipa/13.png" alt="" /></p>
+
+<p>And the same with <span class="math inline">\(R_2\)</span>:
+<img src="img/posts/ipa/14.png" alt="" /></p>
+
+<p>Now, we will compute the new <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span> to be used in the next round by:</p>
+<p><span class="math display">\[
+\overrightarrow{a} \longleftarrow \overrightarrow{a}_{hi} \cdot u_j^{-1} + \overrightarrow{a}_{lo} \cdot u_j\\
+\overrightarrow{b} \longleftarrow \overrightarrow{b}_{lo} \cdot u_j^{-1} + \overrightarrow{b}_{hi} \cdot u_j
+\]</span></p><p><img src="img/posts/ipa/15.png" alt="" /></p>
+
+<p><img src="img/posts/ipa/16.png" alt="" /></p>
+
+<p>And similarly for <span class="math inline">\(\overrightarrow{G} \longleftarrow \overrightarrow{G}_{lo} \cdot u_j^{-1} + \overrightarrow{G}_{hi} \cdot u_j\)</span>
+<img src="img/posts/ipa/17.png" alt="" /></p>
+
+<p>We can see that <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span> have halved.</p>
+
+<h5>Round j=1:</h5>
+
+<p>From the previous round we have:</p>
+
+<p><img src="img/posts/ipa/18.png" alt="" /></p>
+
+<p>Choose the random blinding factors:
+<img src="img/posts/ipa/19.png" alt="" /></p>
+
+<p>And now, in the same fashion that we did in the previous round, we compute the <span class="math inline">\(L_1, R_1\)</span>:
+<img src="img/posts/ipa/20.png" alt="" /></p>
+
+<p><img src="img/posts/ipa/21.png" alt="" /></p>
+
+<p>Now, we will compute the new <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span> to be used in the next round:
+<img src="img/posts/ipa/22.png" alt="" /></p>
+
+<p><img src="img/posts/ipa/23.png" alt="" /></p>
+
+<p><img src="img/posts/ipa/24.png" alt="" /></p>
+
+<h5>Round j=0:</h5>
+
+<p><img src="img/posts/ipa/25.png" alt="" /></p>
+
+<p>Set the random blinding factors <span class="math inline">\(l_0, r_0\)</span>:
+<img src="img/posts/ipa/26.png" alt="" /></p>
+
+<p>Compute <span class="math inline">\(L_0, R_0\)</span>:
+<img src="img/posts/ipa/27.png" alt="" /></p>
+
+<p>we will compute the new halved <span class="math inline">\(\overrightarrow{a}, \overrightarrow{b}, \overrightarrow{G}\)</span>:
+<img src="img/posts/ipa/28.png" alt="" /></p>
+
+<p><img src="img/posts/ipa/29.png" alt="" />
+<img src="img/posts/ipa/30.png" alt="" /></p>
+
+<p>The prover ends having as outputs <span class="math inline">\(a=\overrightarrow{a}_0, ~~b=\overrightarrow{b}_0, ~~G=\overrightarrow{G}_0\)</span>, and the random blinding factors <span class="math inline">\(\overrightarrow{l}, \overrightarrow{r}\)</span>, together with <span class="math inline">\(\overrightarrow{L}, \overrightarrow{R}\)</span>:
+<img src="img/posts/ipa/31.png" alt="" /></p>
+
+<h3>Verify</h3>
+
+<p>First, verifier recomputes <span class="math inline">\(b\)</span> and <span class="math inline">\(G\)</span>. This can be done in more efficient ways described in the Halo paper, but for the sake of simplicity we will assume that the verifier computes <span class="math inline">\(b\)</span> and <span class="math inline">\(G\)</span> in the <em>naive way</em> (which is, doing a similar loop than what the prover did, going from the original <span class="math inline">\(\overrightarrow{b}, \overrightarrow{G}\)</span> halving each round until obtaining <span class="math inline">\(b, G\)</span>). In the Sage implementation provided in the next section, we will use the efficient approach, which was also provided in the overview section.</p>
+
+<p>Now, the verifier can compute <span class="math inline">\(P'\)</span> in the same way that the prover did (<span class="math inline">\(P'=P + [v] U\)</span>), and from here computes <span class="math inline">\(Q_0 = \sum_{j=1}^k ( [u_j^2] L_j) + P' + \sum_{j=1}^k ([u_j^{-2}] R_j)\)</span>:</p>
+
+<p><img src="img/posts/ipa/32.png" alt="" /></p>
+
+<p>As we did previously, for an easier by-hand computation, we can &lsquo;translate&rsquo; the points to multiples of the generator <span class="math inline">\(G\)</span>, to operate with them more easily without a computer:</p>
+
+<p><img src="img/posts/ipa/33.png" alt="" /></p>
+
+<p>We need to compute also <span class="math inline">\(r' = \sum_{j=1}^k (l_j \cdot u_j^2) + r + \sum_{j=1}^k (r_j \cdot u_j^{-2})\)</span>:</p>
+
+<p><img src="img/posts/ipa/34.png" alt="" /></p>
+
+<p>And then compute <span class="math inline">\(Q_1 = [a] G + [r'] H + [ab] U\)</span>:</p>
+
+<p><img src="img/posts/ipa/35.png" alt="" /></p>
+
+<p>And by checking that <span class="math inline">\(Q_0 == Q_1\)</span>, the verifier finishes the verification.</p>
+
+<h2>Now let&rsquo;s do a simple implementation</h2>
+
+<p>We will do a simple implementation in Sage of the protocol.</p>
+
+<p>First of all, we set up our curve:</p>
+
+<pre><code class="language-python">p = 19
+Fp = GF(p)
+E = EllipticCurve(Fp,[0,3])
+g = E(1, 2)
+q = g.order()
+Fq = GF(q)
+</code></pre>
+
+<p>Now let&rsquo;s create the &lsquo;IPA&rsquo; class:</p>
+
+<pre><code class="language-python">class IPA_halo(object):
+    def __init__(self, F, E, g, d):
+        self.g = g
+        self.F = F
+        self.E = E
+        self.d = d
+
+        self.h = E.random_element()
+        self.gs = random_values(E, d)
+        self.hs = random_values(E, d)
+
+
+def random_values(G, d):
+    r = [None] * d
+    for i in range(d):
+        r[i] = G.random_element()
+    return r
+</code></pre>
+
+<p>Now we can generate all the elliptic curve points in a similar way that when we computed them by-hand in the previous section:</p>
+
+<pre><code class="language-python">print(&quot;\nlet's generate all the points:&quot;)
+P = g+g
+print(&quot;P_0:&quot;, g)
+i=1
+while P!=g:
+    print(&quot;P_%d:&quot; % i, P)
+    P = P + P
+    i += 1
+print(&quot;P_%d:&quot; % (i+1), E(0), &quot;(point at infinity)&quot;)
+</code></pre>
+
+<p>Alternatively we can use Sage&rsquo;s methods:</p>
+
+<pre><code class="language-python"># alternatively:
+print(&quot;points&quot;, E.points())
+print(&quot;number of points&quot;, len(E.points()))
+</code></pre>
+
+<p>Now, the Prover will set the polynomial <span class="math inline">\(p(X)\)</span> and the Verifier would set <span class="math inline">\(x\)</span>:</p>
+
+<pre><code class="language-python">print(&quot;\ndefine p(X) = 1 + 2x + 3x² + 4x³ + 5x⁴ + 6x⁵ + 7x⁶ + 8x⁷&quot;)
+a = [ipa.F(1), ipa.F(2), ipa.F(3), ipa.F(4),
+    ipa.F(5), ipa.F(6), ipa.F(7), ipa.F(8)]
+x = ipa.F(3)
+x_powers = powers_of(x, ipa.d) # = b
+</code></pre>
+
+<p>Prover sets the blinding factor <span class="math inline">\(r\)</span>:</p>
+
+<pre><code class="language-python">r = int(ipa.F.random_element())
+</code></pre>
+
+<p>We will implement some utility functions that we&rsquo;ll use later in the rest of the implementation:</p>
+
+<pre><code class="language-python">def inner_product_field(a, b):
+    assert len(a) == len(b)
+    c = 0
+    for i in range(len(a)):
+        c = c + a[i] * b[i]
+
+    return c
+
+def inner_product_point(a, b):
+    assert len(a) == len(b)
+    c = 0
+    for i in range(len(a)):
+        c = c + int(a[i]) * b[i]
+
+    return c
+
+def vec_add(a, b):
+    assert len(a) == len(b)
+    return [x + y for x, y in zip(a, b)]
+
+def vec_mul(a, b):
+    assert len(a) == len(b)
+    return [x * y for x, y in zip(a, b)]
+
+def vec_scalar_mul_field(a, n):
+    r = [None]*len(a)
+    for i in range(len(a)):
+        r[i] = a[i]*n
+    return r
+
+def vec_scalar_mul_point(a, n):
+    r = [None]*len(a)
+    for i in range(len(a)):
+        r[i] = a[i]*int(n)
+    return r
+</code></pre>
+
+<p>And we will implement in the <code>IPA</code> class the methods for committing and evaluating:</p>
+
+<pre><code class="language-python">class IPA_halo:
+    # [...]
+    def commit(self, a, r):
+        P = inner_product_point(a, self.gs) + r * self.h
+        return P
+
+    def evaluate(self, a, x_powers):
+        return inner_product_field(a, x_powers)
+</code></pre>
+
+<p>So now the prover can commit to <span class="math inline">\(a\)</span>:</p>
+
+<pre><code class="language-python">print(&quot;\nProver commits to a:&quot;)
+P = ipa.commit(a, r)
+print(&quot; commit: P = &lt;a, G&gt; + r * H = &quot;, P)
+print(&quot;Evaluates a at {1 + x + x² + x³ + … + xⁿ⁻¹}:&quot;)
+v = ipa.evaluate(a, x_powers)
+print(&quot; v =&quot;, v)
+print(&quot; (which is equivalent to evaluating p(X) at x=3)&quot;)
+</code></pre>
+
+<p>Verifier generates random challenges <span class="math inline">\(u_j \in \mathbb{I}\)</span> and <span class="math inline">\(U \in \mathbb{U}\)</span></p>
+
+<pre><code class="language-python">print(&quot;\nVerifier generate random challenges {uᵢ} ∈ 𝕀 and U ∈ 𝔾&quot;)
+U = ipa.E.random_element()
+k = int(math.log(ipa.d, 2))
+u = [None] * k
+for j in reversed(range(0, k)):
+    u[j] = ipa.F.random_element()
+    while (u[j] == 0): # prevent u[j] from being 0
+        u[j] = ipa.F.random_element()
+print(&quot; U =&quot;, U)
+print(&quot; u =&quot;, u)
+</code></pre>
+
+<p>Now let&rsquo;s implmenet the <code>ipa</code> proof generation method in the <code>IPA</code> class:</p>
+
+<pre><code class="language-python">def ipa(self, a_, x_powers, u, U): # prove
+    G = self.gs
+    a = a_
+    b = x_powers
+
+    k = int(math.log(self.d, 2))
+    l = [None] * k
+    r = [None] * k
+    L = [None] * k
+    R = [None] * k
+
+    for j in reversed(range(0, k)):
+        m = len(a)/2
+        a_lo = a[:m]
+        a_hi = a[m:]
+        b_lo = b[:m]
+        b_hi = b[m:]
+        G_lo = G[:m]
+        G_hi = G[m:]
+
+        l[j] = self.F.random_element() # random blinding factor
+        r[j] = self.F.random_element() # random blinding factor
+
+        #  Lⱼ = &lt;a'ₗₒ, G'ₕᵢ&gt; + [lⱼ] H + [&lt;a'ₗₒ, b'ₕᵢ&gt;] U
+        L[j] = inner_product_point(a_lo, G_hi) + int(l[j]) * self.h + int(inner_product_field(a_lo, b_hi)) * U
+        #  Rⱼ = &lt;a'ₕᵢ, G'ₗₒ&gt; + [rⱼ] H + [&lt;a'ₕᵢ, b'ₗₒ&gt;] U
+        R[j] = inner_product_point(a_hi, G_lo) + int(r[j]) * self.h + int(inner_product_field(a_hi, b_lo)) * U
+        
+        # use the random challenge uⱼ ∈ 𝕀 generated by the verifier
+        u_ = u[j] # uⱼ
+        u_inv = self.F(u[j])^(-1) # uⱼ⁻¹
+
+        a = vec_add(vec_scalar_mul_field(a_lo, u_), vec_scalar_mul_field(a_hi, u_inv))
+        b = vec_add(vec_scalar_mul_field(b_lo, u_inv), vec_scalar_mul_field(b_hi, u_))
+        G = vec_add(vec_scalar_mul_point(G_lo, u_inv), vec_scalar_mul_point(G_hi, u_))
+
+    assert len(a)==1
+    assert len(b)==1
+    assert len(G)==1
+    # a, b, G have length=1
+    # l, r are random blinding factors
+    # L, R are the &quot;cross-terms&quot; of the inner product
+    return a[0], l, r, L, R
+</code></pre>
+
+<p>Followed by the Inner Product Argument using the <code>ipa</code> method that we implemented in the previous step:</p>
+
+<pre><code class="language-python">print(&quot;\nProver computes the Inner Product Argument:&quot;)
+a_ipa, b_ipa, G_ipa, lj, rj, L, R = ipa.ipa(a, x_powers, u, U)
+print(&quot; a=&quot;, a_ipa)
+print(&quot; b=&quot;, b_ipa)
+print(&quot; G=&quot;, G_ipa)
+print(&quot; l_j=&quot;, lj)
+print(&quot; r_j=&quot;, rj)
+print(&quot; R=&quot;, R)
+print(&quot; L=&quot;, L)
+</code></pre>
+
+<p>Now let&rsquo;s implement the verification:</p>
+
+<pre><code class="language-python">def verify(self, P, a, v, x_powers, r, u, U, lj, rj, L, R):
+    # compute P' = P + [v] U
+    P = P + int(v) * U
+
+    s = build_s_from_us(u, self.d)
+    b = inner_product_field(s, x_powers)
+    G = inner_product_point(s, self.gs)
+
+    # synthetic blinding factor
+    # r' = r + ∑ ( lⱼ uⱼ² + rⱼ uⱼ⁻²)
+    r_ = r
+    # Q_0 = P' ⋅ ∑ ( [uⱼ²] Lⱼ + [uⱼ⁻²] Rⱼ)
+    Q_0 = P
+    for j in range(len(u)):
+        u_ = u[j] # uⱼ
+        u_inv = u[j]^(-1) # uⱼ⁻²
+
+        # ∑ ( [uⱼ²] Lⱼ + [uⱼ⁻²] Rⱼ)
+        Q_0 = Q_0 + int(u[j]^2) * L[j] + int(u_inv^2) * R[j]
+
+        r_ = r_ + lj[j] * (u_^2) + rj[j] * (u_inv^2)
+
+    Q_1 = int(a) * G + int(r_) * self.h + int(a * b)*U
+
+    return Q_0 == Q_1
+</code></pre>
+
+<p>Which now the verifier uses the method to verify the proof:</p>
+
+<pre><code class="language-python">verif = ipa.verify(P, a_ipa, v, x_powers, r, u, U, lj, rj, L, R)
+assert verif == True
+</code></pre>
+
+<p>Now that we have the implementation of the protocol in Sage, we could replace the elliptic curve by some more &lsquo;real&rsquo; curve to see it work with more realistic values.</p>
+
+<h2>Final note</h2>
+
+<p>As mentioned in the beginning, this post is not intended to provide the full description of the scheme and its proofs, but to provide an overview with a by-hand step-by-step example and a later simple Sage implementation. You can find the <a href="https://github.com/arnaucube/math/blob/master/ipa.sage">complete Sage implementation here</a>. Additionally, here you can find <a href="https://github.com/arnaucube/ipa-rs">a Rust implementation using arkworks</a>.</p>
+
+<p>One thing worth to mention is that IPA proving cost is <span class="math inline">\(\mathcal{O}(n)\)</span>, proof size is <span class="math inline">\(\mathcal{O}(log(n))\)</span>, and verification cost is <span class="math inline">\(\mathcal{O}(n)\)</span>. An interesting technique not covered in this post, is the one presented in the <a href="https://eprint.iacr.org/2019/1021.pdf">Halo</a> paper, in which the cost of verification is amortized, achieving practical <span class="math inline">\(\mathcal{O}(log(n))\)</span> verification.</p>
+
+<p>IPA is used as polynomial commitment scheme in places like the already mentioned <a href="https://eprint.iacr.org/2019/1021.pdf">Halo</a> (and <a href="https://zcash.github.io/halo2/index.html">Halo2</a>), but it can be combined in other schemes such as <a href="https://iacr.org/archive/eurocrypt2020/12105185/12105185.pdf">Marlin</a>.</p>
+
+<p>I&rsquo;m still amazed by the existence of all the &lsquo;magic&rsquo; of the polynomial commitments, and how they can be combined with polyomial IOPs to achieve practical SNARKs.</p>
+
+<style>
+p > img{
+    max-width: 70%!important;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+                            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true}
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+      });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
+    </script>
+    <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
+    </script>
+    <script src="js/mermaid.min.js"></script>
+
+
+  </body>
+</html>
+

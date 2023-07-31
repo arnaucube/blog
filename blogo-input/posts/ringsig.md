@@ -119,7 +119,7 @@ return [c[0], r]
 <br>
 
 It reminds in some way to the approach to close a box like the one in the picture:
-![](img//posts/ring-sig/box-closed.png)
+![](img/posts/ring-sig/box-closed.png)
 
 
 <br><br><br>

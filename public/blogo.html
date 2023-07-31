@@ -459,6 +459,7 @@ func putHTMLToTemplate(template string, m map[string]string) string {
             {left: '$', right: '$', display: false},
             {left: "\\[", right: "\\]", display: true},
             {left: "\\(", right: "\\)", display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true}
           ],
           // • rendering keys, e.g.:
           throwOnError : true
