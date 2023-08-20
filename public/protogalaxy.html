@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta name="description" content="The idea of these notes is to provide some extra intuition and explainations on ProtoGalaxy's paper. ProtoGalaxy is a folding scheme which iterates on ideas from ProtoStar paper." />
+    <meta charset="utf-8">
+    <title> Notes on ProtoGalaxy - arnaucube - blog</title>
+    <meta name="title" content=" Notes on ProtoGalaxy - arnaucube - blog">
+    <meta name="description" content="The idea of these notes is to provide some extra intuition and explainations on ProtoGalaxy's paper. ProtoGalaxy is a folding scheme which iterates on ideas from ProtoStar paper.">
+
+    <meta property="og:title" content=" Notes on ProtoGalaxy - arnaucube - blog" />
+    <meta property="og:description" content="The idea of these notes is to provide some extra intuition and explainations on ProtoGalaxy's paper. ProtoGalaxy is a folding scheme which iterates on ideas from ProtoStar paper." />
+    <meta property="og:url" content="https://arnaucube.com/blog/protogalaxy.html" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="https://arnaucube.com/blog/img/posts/protogalaxy/protogalaxies-colliding.jpg" />
+    <meta name="twitter:title" content=" Notes on ProtoGalaxy - arnaucube - blog">
+    <meta name="twitter:description" content="The idea of these notes is to provide some extra intuition and explainations on ProtoGalaxy's paper. ProtoGalaxy is a folding scheme which iterates on ideas from ProtoStar paper.">
+    <meta name="twitter:image" content="https://arnaucube.com/blog/img/posts/protogalaxy/protogalaxies-colliding.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="author" content="arnaucube">
+
+    <link rel="icon" type="image/png" href="img/logoArnauCubeFavicon.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- highlightjs -->
+    <!-- <link rel="stylesheet" href="js/highlightjs/atom-one-dark.css"> -->
+    <link rel="stylesheet" href="js/highlightjs/atom-one-light.css">
+    <!-- <link rel="stylesheet" href="js/highlightjs/gruvbox-dark.css"> -->
+    <script src="js/highlightjs/highlight.pack.js"></script>
+
+    <!-- katex -->
+    <link rel="stylesheet" href="js/katex/katex.min.css">
+  </head>
+
+  <body>
+
+    <!-- o_gradient_background" -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top"
+                      style="height:50px;font-size:130%;">
+      <div class="container">
+        <div style="float:left;">
+        <a href="/blog" style="color:#000;display:inline-block;">Blog index</a>
+        <span style="margin-right:20px; margin-left:20px;">|</span>
+        <a href="/blog/notes.html" style="font-size:90%;color:#000;display:inline-block;">other-notes</a>
+        </div>
+        <div style="float:right;">
+          <a href="/" style="color:#000;display:inline-block;">arnaucube.com</a>
+          <div class="onoffswitch" style="margin:10px;display:inline-block;" title="change theme">
+            <input onclick="switchTheme()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+              id="themeSwitcher">
+            <label class="onoffswitch-label" for="themeSwitcher"></label>
+          </div>
+        </div>
+      </div>
+      <img style="height:5px; width:100%; margin-top:8px;" src="img/gradient-line.jpg" />
+    </nav>
+
+
+
+    <div class="container" style="margin-top:40px;max-width:800px;">
+      <h1>Notes on ProtoGalaxy</h1>
+
+<p><em>2023-08-20</em></p>
+
+<blockquote>
+<p><strong>Note</strong>: I&rsquo;m not a mathematician, just a math enthusiast studying in my free time, and this article is just an attempt to try to sort the notes that I took while studying the ProtoGalaxy scheme.</p>
+</blockquote>
+
+<p>The idea of these notes is to provide some extra intuition on <a href="https://eprint.iacr.org/2023/1106">ProtoGalaxy paper</a>.
+The paper is very well written and exposes the ideas very clearly, so it&rsquo;s worth to check directly the paper instead of these notes.</p>
+
+<p>I make use of <span class="math inline">\(\textcolor{blue}{c}\textcolor{magenta}{o}\textcolor{orange}{l}\textcolor{cyan}{o}\textcolor{green}{u}\textcolor{red}{r}\textcolor{pink}{s}\)</span> to try to relate the different parameters across the scheme.</p>
+
+<p>ProtoGalaxy is a <em>folding scheme</em> which iterates on ideas from <a href="https://eprint.iacr.org/2023/620">ProtoStar paper</a> (here you can find <a href="https://geometry.xyz/notebook/paper-speedrun-protostar">Geometry&rsquo;s post</a> overviewing its main results and techniques).</p>
+
+<p>For an introduction to <em>folding schemes</em> I highly recommend <a href="https://youtu.be/IzLTpKWt-yg?t=6367">this talk (at 1:46)</a> by <a href="https://twitter.com/CPerezz19">Carlos Perez</a>.</p>
+
+<p>I would like to thank <a href="https://twitter.com/LiamEagen">Liam Eagen</a> and <a href="https://twitter.com/rel_zeta_tech">Ariel Gabizon</a> for their kind explanations on the scheme.
+Also thanks to <a href="https://twitter.com/kiliconu">Onur</a> for comments and corrections.</p>
+
+<div style="margin-left:20%;" >
+
+<img src="img/posts/protogalaxy/protogalaxies-colliding.jpg"/>
+
+<br>
+(img: protogalaxies colliding, <a href="https://en.wikipedia.org/wiki/File:Stellar_Fireworks_Finale.jpg">from Wikipedia</a>)
+
+</div>
+
+<h2>Preliminaries</h2>
+
+<p>Before jumping into the protocol itself, let&rsquo;s overview some building blocks first.</p>
+
+<h4><span class="math inline">\(pow_i\)</span></h4>
+
+<p>In the protocol we need the powers of a random value. We use the <span class="math inline">\(pow_i\)</span> function to store and operate only <span class="math inline">\(log(n)\)</span> entries instead of <span class="math inline">\(n\)</span>.</p>
+
+<p><span class="math inline">\(pow_i\)</span> is a <span class="math inline">\(t\)</span>-variate polynomial such that</p>
+<p><span class="math display">\[
+% pow_i(X_1, \ldots, X_t) = \prod_{i \in [n]} ((1-b_j) + b_j \cdot X^{2^j})
+pow_i(X) = \prod_{i \in [n]} ((1-b_j) + b_j \cdot X^{2^j})
+\]</span></p><p>where <span class="math inline">\(b_j\)</span> is the binary decomposition of <span class="math inline">\(n\)</span>, such that <span class="math inline">\(n = \sum 2^j\)</span>.</p>
+
+<p>In our case, we will have <span class="math inline">\(\overrightarrow{X}\)</span> being <span class="math inline">\(\overrightarrow{\beta} = \{\beta^{2^i} \}_0^{t-1} = (\beta, \beta^2, \beta^4, \ldots, \beta^{2^{t-1}})\)</span>, thus</p>
+<p><span class="math display">\[
+pow_i(\overrightarrow{\beta}) = \prod_{j \in [n]} ((1-b_j) + b_j \cdot \beta_j)
+\]</span></p><p>which, basically is a way to have <span class="math inline">\(pow_i(\overrightarrow{\beta}) = \beta^i\)</span>, but storing just <span class="math inline">\(t\)</span> betas, to actually represent <span class="math inline">\(2^t\)</span> of them, so we work with <span class="math inline">\(log\)</span> of the total amount actually used.</p>
+
+<p>So, for example,</p>
+<p><span class="math display">\[
+    i=2_d=10_b;~
+    pow_2(\overrightarrow{\beta}) =
+    \underbrace{((1-0) + 0 \cdot \beta)}_{1}
+    \cdot \underbrace{((1-1) + 1 \cdot \beta^2)}_{\beta^2}
+    = \beta^2
+    \\
+    i=3_d=11_b;~
+    pow_3(\overrightarrow{\beta}) =
+    \underbrace{((1-1) + 1 \cdot \beta)}_{\beta}
+    \cdot \underbrace{((1-1) + 1 \cdot \beta^2)}_{\beta^2}
+    = \beta^3
+    \\
+    i=4_d=100_b;~
+    pow_4(\overrightarrow{\beta}) =
+    \underbrace{((1-0) + 0 \cdot \beta)}_{1}
+    \cdot \underbrace{((1-0) + 0 \cdot \beta^2)}_{1}
+    \cdot \underbrace{((1-1) + 1 \cdot \beta^4)}_{\beta^4}
+    = \beta^4
+    \\
+    i=5_d=101_b;~
+    pow_5(\overrightarrow{\beta}) =
+    \underbrace{((1-1) + 1 \cdot \beta)}_{\beta}
+    \cdot \underbrace{((1-0) + 0 \cdot \beta^2)}_{1}
+    \cdot \underbrace{((1-1) + 1 \cdot \beta^4)}_{\beta^4}
+    = \beta^5
+\]</span></p>
+<h4>Lagrange bases</h4>
+
+<p>Let <span class="math inline">\(\omega\)</span> denote a root of unity, such that <span class="math inline">\(\omega^N=1\)</span>, and set <span class="math inline">\(\mathbb{H}=\{1, \omega, \omega^2, \ldots, \omega^{N-1}\}\)</span>.</p>
+
+<p>Lagrange bases are a whole topic by itself, but for following the next sections, we just need to have a clear intuition on how they operate. The main idea is that</p>
+<p><span class="math display">\[L_j(\omega^i)=
+\begin{cases}
+	&amp;1 ~\text{if}~ i=j\\
+	&amp;0 ~\text{otherwise}
+\end{cases}
+\]</span></p><p>In other words, when we&rsquo;re evaluating the Lagrange base <span class="math inline">\(j\)</span> at <span class="math inline">\(w^i\)</span>, the evaluation is going to be <span class="math inline">\(1\)</span> when <span class="math inline">\(i=j\)</span>, and <span class="math inline">\(0\)</span> in all the other cases.</p>
+
+<p>To get a bit of more intuition here, let&rsquo;s represent this visually:</p>
+
+<div>
+
+<img src="img/posts/protogalaxy/lagrange-basis-intuition.png" style="width:40%;display:inline-block;" />
+
+<div style="width:50%; display:inline-block;">
+The intuition here is that when we evaluate $L_2(X)$ at $\omega_2=\omega^2$, it will give us $1$. In the blue equation of the image we're doing $L_2(w^2) \cdot v_k = 1 \cdot v_k$.
+
+While, when we evaluate $L_2(X)$ at for example $\omega^1$, we will obtain a $0$, thus the result will be a $0$.
+
+</div>
+</div>
+
+<p>Let the vanishing polynomial of <span class="math inline">\(\mathbb{H}\)</span> be <span class="math inline">\(Z(X)=\prod_{i=0}^{N-1} (X - \omega^i) = X^N -1\)</span>.</p>
+
+<h4>Function <span class="math inline">\(f(X)\)</span></h4>
+
+<p>Assume we have a function <span class="math inline">\(f(X)\)</span> which when evaluated at a valid witness is equal to 0.</p>
+
+<p>For example, in the R1CS case, this would be (for given matrices <span class="math inline">\(A, B, C \in \mathbb{F}^{m \times m}\)</span> representing our constraints),</p>
+
+<!--$$f(X)= \sum_{i=0}^n A(X_i) \cdot B(X_i) - C(X_i)$$-->
+<p><span class="math display">\[f(X)= A \cdot X \circ B \cdot X - C \cdot X \]</span></p>
+<!-- $$f(X)= \sum_{i=0}^n A(X_i) \cdot B(X_i) - C(X_i)$$ -->
+
+<p>where <span class="math inline">\(f(w)=0^n\)</span> if satisfied for a valid witness <span class="math inline">\(w \in \mathbb{F}^n\)</span>.</p>
+
+<p>Our goal will be to prove that we have folded various instantiations of valid witnesses and that they fulfill the check of <span class="math inline">\(f(w)=0^n\)</span>.</p>
+
+<h4>Lemma 4.2</h4>
+
+<p>The following lemma is proven in the ProtoGalaxy paper, but for the current overview we will stick just to its results. The details can be found in the paper itself.</p>
+
+<blockquote>
+<p><strong>Lemma 4.2:</strong> Fix any polynomial <span class="math inline">\(f(X) \in \mathbb{F}[X]\)</span> and <span class="math inline">\(a_0, \ldots, a_k \in \mathbb{F}\)</span>. There exists <span class="math inline">\(Q(X) \in \mathbb{F}[X]\)</span> such that</p>
+<p><span class="math display">\[
+	f \left( \sum_{i=0}^k a_i L_i(X) \right) = \sum_{i=0}^k f(a_i) L_i(X) + Z(X) Q(X)
+\]</span></p></blockquote>
+
+<h2>ProtoGalaxy protocol</h2>
+
+<p>The main idea of this scheme, is to be able to fold <span class="math inline">\(k+1\)</span> instances that satisfy the relation, producing a single <em>folded instance</em> which still satisfies the relation.</p>
+
+<p><img src="img/posts/protogalaxy/folding-diagram.png" style="width:80%;" /></p>
+
+<h4>Instances</h4>
+
+<p>Let <span class="math inline">\((\phi; w)\)</span> be our running instance, the witness is represented by <span class="math inline">\(w\)</span>, and <span class="math inline">\(\phi = cm(w)\)</span> represents the committed witness.
+Additionally, we will have <span class="math inline">\(k\)</span> randomized instance pairs <span class="math inline">\(( \{ \phi_i \}^k; \{ w_i \}^k )\)</span>.</p>
+
+<p>The running instance is paired with two more parameters, so the complete running instance consists of <span class="math inline">\(((\phi, \overrightarrow{\beta}, e); w)\)</span>, where <span class="math inline">\(e\)</span> is the &lsquo;error&rsquo; term and <span class="math inline">\(\overrightarrow{\beta} \in^R \mathbb{F}^t\)</span> (where <span class="math inline">\(t=\log(n)\)</span>).</p>
+
+<p>As we start folding instances, the folded instance must satisfy the relation</p>
+<p><span class="math display">\[
+\sum_{i \in [n]} pow_i(\overrightarrow{\beta}) f_i(w) = e
+\]</span></p><p>where <span class="math inline">\(pow_i\)</span> is the function explained in the <a href="#preliminaries">preliminaries section</a>, and <span class="math inline">\(f_i\)</span> is the <span class="math inline">\(i\)</span>-th value from evaluating <span class="math inline">\(f(w)\)</span>.</p>
+
+<p>For the first instance (before folding) <span class="math inline">\(e=0\)</span>, which we can see that matches <span class="math inline">\(\sum_{i \in [n]} pow_i(\overrightarrow{\beta}) f_i(w) = 0\)</span>, since <span class="math inline">\(f(w)=0^n\)</span> for a valid <span class="math inline">\(w\)</span>.</p>
+
+<h4>Protocol</h4>
+
+<p>We want a way for the Prover to fold <span class="math inline">\(k+1\)</span> instances into a single one, combining them while ensuring that they satisfy the relation by showing that <span class="math inline">\(f(w_i)=0\)</span> for all <span class="math inline">\(k+1\)</span> instances.</p>
+
+<p>For doing so, we could just add all the instances naively, but they could cancel each other giving <span class="math inline">\(0\)</span> when evaluated at the different <span class="math inline">\(w_i\)</span>, even when individually don&rsquo;t evaluate at <span class="math inline">\(0\)</span>.</p>
+
+<p>One way to combine the instances is through making use of a random linear combination (as done in Nova and ProtoStar), but when combining <span class="math inline">\(k\)</span> instances the degree of the cross-terms would grow exponentially. Thus ProtoGalaxy uses the Lagrange bases, by associating each instance to a different Lagrange coefficient, thus keeping the instances &lsquo;separated&rsquo; while being combined in the same expression.</p>
+
+<p><br>
+<em>(Let P denote the Prover, and V the Verifier)</em></p>
+
+<ol>
+<li><p>V sends a challenge <span class="math inline">\(\delta \in^R \mathbb{F}\)</span></p></li>
+
+<li><p>P, V compute <span class="math inline">\(\overrightarrow{\delta} = \{\delta^{2^i} \}_0^{t-1} = (\delta, \delta^2, \delta^4, \ldots, \delta^{2^{t-1}}) \in \mathbb{F}^t\)</span></p></li>
+
+<li><p>P computes the polynomial</p>
+<p><span class="math display">\[
+F(X) := \sum_{i \in [n]} pow_i(
+\underbrace{
+	\textcolor{orange}{\overrightarrow{\beta}} + X \cdot
+	\textcolor{orange}{\overrightarrow{\delta} }
+}_\text{represent it by $\textcolor{orange}{\overrightarrow{\eta}}$}
+) \textcolor{ForestGreen}{f_i(w)}
+\\
+\text{\scriptsize{where $\textcolor{orange}{\overrightarrow{\eta}}$ is just an intermediate}}
+\\
+\text{\scriptsize{representation of the new random vector over $X$}}
+\\
+\text{\scriptsize{where $\overrightarrow{\eta}=\{ \beta+X \delta, \beta^2 + X \delta^2, \beta^4 +X \delta^4, \ldots, \beta^{2^{t-1}} + X \delta^{2^{t-1}} \}$}}
+\\
+= \sum_{i \in [n]}
+	pow_i(\textcolor{orange}{\overrightarrow{\eta}})
+\textcolor{ForestGreen}{f_i(w)}
+\]</span></p><p>Notice that each <span class="math inline">\(pow_i(\textcolor{orange}{\overrightarrow{\eta}})\)</span> will be a polynomial of degree equal to the number of positive bits in the binary representation of <span class="math inline">\(i\)</span>.</p>
+
+<div style="font-size:85%;">
+
+
+In order to see this, let's simplify $\overrightarrow{\eta}$ and instead let's get take $\overrightarrow{\eta}$ getting rid of $\beta,~\delta$. Let $\overrightarrow{X} = \{X, X, X, \ldots, X \}$,
+recall that 
+
+
+$$
+pow_i(\overrightarrow{X}) = \prod_{j \in [n]} ((1-b_j) + b_j \cdot X_j)
+$$
+
+
+then we have
+
+
+$$
+i=2_d=10_b;~
+pow_2(\overrightarrow{X}) = 1 \cdot X = X;~ deg=1
+\\
+i=3_d=11_b;~
+pow_3(\overrightarrow{X}) = X \cdot X = X^2;~ deg=2
+\\
+i=4_d=100_b;~
+pow_4(\overrightarrow{X}) = 1 \cdot 1 \cdot X = X;~ deg=1
+\\
+i=5_d=101_b;~
+pow_5(\overrightarrow{X}) = X \cdot 1 \cdot X = X^2;~ deg=2
+\\
+i=6_d=110_b;~
+pow_6(\overrightarrow{X}) = 1 \cdot X \cdot X = X^2;~ deg=2
+\\
+i=7_d=111_b;~
+pow_7(\overrightarrow{X}) = X \cdot X \cdot X = X^3;~ deg=3
+\\
+i=8_d=1000_b;~
+pow_8(\overrightarrow{X}) = 1 \cdot 1 \cdot 1 \cdot X = X;~ deg=1
+$$
+
+
+</div>
+
+<p>So, for example <span class="math inline">\(pow_{255}\)</span>, since <span class="math inline">\(i=255_d = 11111111_b\)</span>, will have degree <span class="math inline">\(8\)</span>. But <span class="math inline">\(pow_{256}\)</span>, since <span class="math inline">\(i=256_d= 100000000_b\)</span>, will have degree <span class="math inline">\(1\)</span>.
+<br></p>
+
+<p>Notice also that when <span class="math inline">\(X=0\)</span>, <span class="math inline">\(\overrightarrow{\eta}=\overrightarrow{\beta}\)</span>, so we&rsquo;re left with the original equation <span class="math inline">\(F(0)=\sum_{i\in[n]} pow_i(\textcolor{orange}{\overrightarrow{\beta}}) \textcolor{ForestGreen}{f_i(w)} = e\)</span>.</p></li>
+
+<li><p>P sends non constant coefficients <span class="math inline">\(F_1, \ldots, F_t\)</span> of <span class="math inline">\(F(X)\)</span> to V</p></li>
+
+<li><p>V sends a challenge <span class="math inline">\(\textcolor{magenta}{\alpha} \in^R \mathbb{F}\)</span></p></li>
+
+<li><p>P, V compute <span class="math inline">\(F(\textcolor{magenta}{\alpha}) = e + \sum_{i \in [t]} \textcolor{ForestGreen}{F_i} \textcolor{magenta}{\alpha^i}\)</span></p></li>
+
+<li><p>P, V compute <span class="math inline">\(\textcolor{orange}{\overrightarrow{\beta}}\textcolor{magenta}{^*} \in \mathbb{F}^t\)</span> where <span class="math inline">\(\textcolor{orange}{\beta_i \textcolor{magenta}{^*}} := \textcolor{orange}{\beta_i} + \textcolor{magenta}{\alpha} \cdot \textcolor{orange}{\delta^{2^{i-1}}}\)</span></p>
+
+<p>Notice that <span class="math inline">\(\textcolor{orange}{\overrightarrow{\beta}}\textcolor{magenta}{^*} = \textcolor{orange}{\overrightarrow{\beta}} + \textcolor{magenta}{\alpha} \cdot \textcolor{orange}{\overrightarrow{\delta}}\)</span>, is the same as <span class="math inline">\(\textcolor{orange}{\overrightarrow{\eta}}\)</span> with <span class="math inline">\(X=\textcolor{magenta}{\alpha}\)</span>.</p>
+
+<p>We have now a new randomized instance <span class="math inline">\((\textcolor{orange}{\overrightarrow{\beta}}\textcolor{magenta}{^*}, w, F(\alpha))\)</span>, for which the relation from the equation (1) holds:</p>
+<p><span class="math display">\[F(\textcolor{magenta}{\alpha}) = \sum_{i \in [n]} pow_i(\textcolor{orange}{\overrightarrow{\beta}}\textcolor{magenta}{^*}) \textcolor{ForestGreen}{f(w)}\]</span></p><p>since both sides of the equality represent some <span class="math inline">\(\textcolor{magenta}{re-randomized}\)</span> (eg. <span class="math inline">\(\textcolor{magenta}{\alpha}\)</span>) <span class="math inline">\(\textcolor{orange}{random~value}\)</span> (eg. <span class="math inline">\(\textcolor{orange}{\overrightarrow{\beta}, ~\overrightarrow{\delta}}\)</span>) combined with the <span class="math inline">\(\textcolor{ForestGreen}{evaluated~function}\)</span> (eg. <span class="math inline">\(\textcolor{ForestGreen}{f(w)}\)</span>).</p>
+
+<p>The following image tries to show how the previous steps relate:
+<img src="img/posts/protogalaxy/steps-3-7.png" style="width:80%;" /></p></li>
+
+<li><p>P computes the polynomial</p>
+<p><span class="math display">\[
+G(X) := \sum_{i \in [n]}
+pow_i(\overrightarrow{\beta^*}) \cdot f_i(L_0(X) w + \sum_{j \in [k]} L_j(X) w_j)
+\]</span></p>
+<div style="font-size:85%;">Here we make use of the <a href="#lemma-4.2">Lemma 4.2</a> to see that:</div>
+<p><span class="math display">\[
+G(X) := \sum_{i \in [n]}
+pow_i(\overrightarrow{\beta^*}) \cdot
+\underbrace{ f_i(\textcolor{SkyBlue}{L_0(X)} w }_{\textcolor{SkyBlue}{L_0(X)} \cdot f_i(w)} + \underbrace{ \sum_{j \in [k]} \textcolor{SkyBlue}{L_j(X)} w_j) }_{0}
+\\
+\text{\small{ notice that $f_i(w_j)=0 ~\forall j \in [k], i \in [n]$, thus $\sum_{j \in [k]} \textcolor{SkyBlue}{L_j(X)} \cdot f_i(w_j) = 0$ }}
+\\
+= \sum_{i \in [n]}
+\underbrace{ pow_i(\overrightarrow{\beta^*}) \cdot f_i(w) }_{F(\alpha) ~\text{from step 6}} \cdot \textcolor{SkyBlue}{L_0(X)} \pmod{Z(X)}
+\\
+= F(\alpha) \cdot \textcolor{SkyBlue}{L_0(X)} \pmod{Z(X)}
+\]</span></p>
+<div style="font-size:85%;">(where $Z(X)$ is the vanishing polynomial from the <a href="#lagrange-bases">preliminaries section</a>)</div>
+
+<p>which leads to the next step.</p></li>
+
+<li><p>P computes the polynomial <span class="math inline">\(K(X)\)</span> such that</p>
+<p><span class="math display">\[G(X) = F(\alpha) L_0(X) + Z(X) K(X)\]</span></p><p>(Recall, <span class="math inline">\(F(\alpha)\)</span> <em>&lsquo;contains&rsquo;</em> the <em>&rsquo;re-randomized&rsquo;</em> expression comming from <span class="math inline">\(\textcolor{magenta}{\alpha}\)</span> combined with <span class="math inline">\(\textcolor{orange}{\overrightarrow{\beta},~ \overrightarrow{\delta}}\)</span>, combined with <span class="math inline">\(\textcolor{ForestGreen}{f(w)}\)</span> from step 7).</p>
+
+<p><br>
+What we&rsquo;re using here is the same trick that we can find in Plonk, KZG commitments, and other known protocols (which, in fact was proposed by <a href="https://sci-hub.hkvisa.net/10.1137/050646445">Eli Ben-Sasson &amp; Madhu Sudan in 2008</a>).
+We&rsquo;re using the fact that if <span class="math inline">\(P(X)/Z(X)\)</span> leads to a polynomial (and not to a rational function) means that <span class="math inline">\(P(X)\)</span> is divisible by <span class="math inline">\(Z(X)\)</span> (the <em>vanishing polynomial</em>), which means that <span class="math inline">\(P(X)\)</span> vanishes over the evaluation domain. From another perspective, there exists a polynomial <span class="math inline">\(K(X)\)</span> such that <span class="math inline">\(P(X) = Z(X) \cdot K(X)\)</span>.
+Here we&rsquo;re using this fact with <span class="math inline">\(K(X)\)</span>, where if exists a <span class="math inline">\(K(X)\)</span> such that <span class="math inline">\(G(X)- F(\alpha)L_0(X) = Z(X)K(X)\)</span>, means that <span class="math inline">\(G(X)-F(\alpha)L_0(X)\)</span> vanishes over the evaluation domain.</p></li>
+
+<li><p>P sends the coefficients <span class="math inline">\(K_1, \ldots, K_t\)</span> of <span class="math inline">\(K(X)\)</span> to V</p></li>
+
+<li><p>V sends a challenge <span class="math inline">\(\gamma \in^R \mathbb{F}\)</span></p></li>
+
+<li><p>P, V compute</p>
+<p><span class="math display">\[e^* := F(\alpha) L_0(\gamma) + Z(\gamma) K(\gamma)\]</span></p></li>
+
+<li><p>P, V outputs the new folded committed instance</p>
+<p><span class="math display">\[\Phi^* = (\phi^*, \overrightarrow{\beta^*}, e^*)\]</span></p><p>where</p>
+<p><span class="math display">\[\phi^* = L_0(\gamma) \phi + \sum_{i \in [k]} L_i(\gamma) \cdot \phi_i\]</span></p><p>Recall from <a href="#lagrange-bases"><em>Lagrange bases</em> section</a>, that the intuition behind Lagrange bases usage is to <em>&lsquo;select&rsquo;</em> the different values associated to each <span class="math inline">\(L_i\)</span>. The idea here is that we are combinning the different instances into a new instance, while keeping them &lsquo;separated&rsquo; by the different <span class="math inline">\(L_i\)</span>.</p></li>
+
+<li><p>Additionally, P outputs the folded witness</p>
+<p><span class="math display">\[w^* = L_0(\gamma) w + \sum_{i \in [k]} L_i(\gamma) \cdot w_i\]</span></p></li>
+</ol>
+
+<p>To check that <span class="math inline">\((\Phi^*; w^*)\)</span> satisfies the relation we check that</p>
+<p><span class="math display">\[\sum_{i \in [n]} pow_i(\overrightarrow{\beta^*}) \cdot f_i(w^*) = e^*\]</span></p><p>As usual, this interactive protocol is converted into a non-interactive one through the Fiat-Shamir transformation.</p>
+
+<!--
+## Wrapup
+
+#### Folding a large amount of instances
+In the previous protocol, prover's costs are $O(k \log k)$, and verifier's costs are $O(k)$.
+ProtoGalaxy paper proposes an alternative construction of the previous scheme, for When we have a larger number of instances being fold.
+
+The main idea will be to replace the vanishing check by a Sumcheck over the boolean hypercube.
+
+
+We will put the running instance $w$ from the previous section together with the other witnesses, so 
+
+In step 8, we had
+
+$$
+\textcolor{gray}{
+G(X) := \sum_{i \in [n]} pow_i(\overrightarrow{\beta^*}) \cdot f_i \left( \sum_{j=0}^k \textcolor{SkyBlue}{L_j(X)} w_j \right)
+}
+$$
+
+Instead of the Lagrange bases, we will use the polynomial $eq(x, y)$.
+
+TODO explain eq poly, maybe in the preliminaries section
+
+
+so we will have
+
+
+$$
+G(t) :=
+eq(t, \overrightarrow{\delta^n})
+\sum_{i \in [n]} pow_i(\overrightarrow{\beta^*})
+\cdot f_i \left( \sum_{j'=0} \textcolor{SkyBlue}{eq(t, j')} w_j' \right)
+$$
+
+P and V run the SumCheck protocol over $G$.
+-->
+
+<h3>Conclusions</h3>
+
+<p>As mentioned initially, the <a href="https://eprint.iacr.org/2023/1106">ProtoGalaxy paper</a> is very well written and clear, so I highly recommend reading it to get the full explaination and proofs. Hopefully these notes might have provided some intuition behind the steps helping to follow the paper descriptions.</p>
+
+<p>One thing to mention is that we&rsquo;ve covered the version of the protocol presented in the section 4 of the paper, which has prover costs <span class="math inline">\(O(k \log k)\)</span> and verifier costs <span class="math inline">\(O(k)\)</span>. In section 5, the protocol is modified to obtain prover costs <span class="math inline">\(O(k)\)</span> and verifier costs <span class="math inline">\(O(\log k)\)</span>, at the expense of worse constant costs, which makes it more suitable for larger <span class="math inline">\(k\)</span> (more instances folded in each step). The main idea is by replacing the vanishing polynomial check with the SumCheck protocol, which internally works with similar equations that we had before, but replacing the Lagrange bases <span class="math inline">\(\textcolor{SkyBlue}{L_j(X)}\)</span> by the equivalent over the multilinar extension world <span class="math inline">\(\textcolor{SkyBlue}{eq(x, t)}\)</span>.</p>
+
+<p>Which for example, the equation that we had on the step 8:</p>
+<p><span class="math display">\[
+\textcolor{gray}{
+G(X) := \sum_{i \in [n]} pow_i(\overrightarrow{\beta^*}) \cdot f_i \left( \sum_{j=0}^k \textcolor{SkyBlue}{L_j(X)} w_j \right)
+}
+\]</span></p><p>is now replaced by</p>
+<p><span class="math display">\[
+G(t) :=
+eq(t, \overrightarrow{\delta^n})
+\sum_{i \in [n]} pow_i(\overrightarrow{\beta^*})
+\cdot f_i \left( \sum_{j'=0} \textcolor{SkyBlue}{eq(t, j')} w_j' \right)
+\]</span></p><p>Further details can be found at section 5 of the paper.</p>
+
+<p><br></p>
+
+<p>I&rsquo;m still discovering all the marvelous world of folding schemes, <a href="https://raw.githubusercontent.com/arnaucube/math/master/notes_nova.pdf">trying</a> to <a href="https://raw.githubusercontent.com/arnaucube/math/master/notes_hypernova.pdf">grasp</a> intuition across the different designs. One thing that will be interesting is to be able to benchmark on the practical side all the different folding schemes to see how they work in practice, and for example depending on the use case, evaluate for which threshold of <span class="math inline">\(k\)</span> makes sense to switch between them, and which <span class="math inline">\(k\)</span> makes sense for different use cases in the context of <a href="https://hackmd.io/@9MPvD9czTQS18zEjAERVAg/Hy-vKK04h">parallelizing folding</a>.</p>
+
+<p>In the repo <a href="https://github.com/arnaucube/protogalaxy-poc">https://github.com/arnaucube/protogalaxy-poc</a> you can find a proof of concept implementation of the ProtoGalaxy scheme described in this post.</p>
+
+    </div>
+
+    <footer style="text-align:center; margin-top:100px;margin-bottom:50px;">
+      <div class="container">
+        <br>
+        <a href="/blog">Go to main</a>
+        <br><br>
+        <div class="row">
+          <ul class="list-inline">
+            <li><a href="https://twitter.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">twitter.com/arnaucube</a>
+            </li>
+            <li><a href="https://github.com/arnaucube"
+                   style="color:gray;text-decoration:none;"
+                   target="_blank">github.com/arnaucube</a>
+            </li>
+          </ul>
+        </div>
+        <div class="row" style="display:inline-block;">
+          Blog made with <a href="http://github.com/arnaucube/blogo/"
+                            target="_blank" style="color: gray;text-decoration:none;">Blogo</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    </script>
+    <script src="js/external-links.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script defer src="js/katex/katex.min.js"></script>
+    <script defer src="js/katex/auto-render.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          displayMode: false,
+          // customised options
+          // • auto-render specific keys, e.g.:
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+            {left: "\\begin{equation}", right: "\\end{equation}", display: true}
+          ],
+          // • rendering keys, e.g.:
+          throwOnError : true
+        });
+      });
+
+      ///
+      let theme = localStorage.getItem("theme");
+      if ((theme === "light-theme")||(theme==null)) {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+      } else if (theme === "dark-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+      }
+      document.body.className = theme;
+      localStorage.setItem("theme", theme);
+
+      function switchTheme() {
+        theme = localStorage.getItem("theme");
+        if (theme === "light-theme") {
+          theme = "dark-theme";
+          document.getElementById("themeSwitcher").checked = true;
+        } else {
+          theme = "light-theme";
+          document.getElementById("themeSwitcher").checked = false;
+        }
+        document.body.className = theme;
+        localStorage.setItem("theme", theme);
+
+        console.log(theme);
+      }
+    </script>
+    <script>
+    function tagLinks(tagName) {
+      var tags = document.getElementsByTagName(tagName);
+      for (var i=0, hElem; hElem =  tags[i]; i++) {
+        if (hElem.parentNode.className=="row postThumb") {
+          continue;
+        }
+        hElem.id = hElem.innerHTML.toLowerCase().replace(" ", "-");
+        hElem.innerHTML = "<a style='text-decoration:none;color:black;' href='#"+hElem.id+"'>"+hElem.innerHTML+"</a>";
+      }
+    }
+    tagLinks("h2");
+    tagLinks("h3");
+    tagLinks("h4");
+    tagLinks("h5");
+    </script>
+    <script src="js/mermaid.min.js"></script>
+
+
+  </body>
+</html>
+

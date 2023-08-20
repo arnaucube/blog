@@ -9,6 +9,12 @@
   "metaimg": "img/logoArnauCube.png",
   "posts": [
     {
+      "thumb": "protogalaxy_thumb.md",
+      "md": "protogalaxy.md",
+      "metadescr": "The idea of these notes is to provide some extra intuition and explainations on ProtoGalaxy's paper. ProtoGalaxy is a folding scheme which iterates on ideas from ProtoStar paper.",
+      "metaimg": "img/posts/protogalaxy/protogalaxies-colliding.jpg"
+    },
+    {
       "thumb": "hypernova_thumb.md",
       "metadescr": "This document contains notes on HyperNova.",
       "outsideArticle": "https://raw.githubusercontent.com/arnaucube/math/master/notes_hypernova.pdf"
