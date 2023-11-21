@@ -182,13 +182,33 @@ While, when we evaluate $L_2(X)$ at for example $\omega^1$, we will obtain a $0$
 
 <h4>Lemma 4.2</h4>
 
-<p>The following lemma is proven in the ProtoGalaxy paper, but for the current overview we will stick just to its results. The details can be found in the paper itself.</p>
+<p>The following lemma is from the ProtoGalaxy paper:</p>
 
 <blockquote>
 <p><strong>Lemma 4.2:</strong> Fix any polynomial <span class="math inline">\(f(X) \in \mathbb{F}[X]\)</span> and <span class="math inline">\(a_0, \ldots, a_k \in \mathbb{F}\)</span>. There exists <span class="math inline">\(Q(X) \in \mathbb{F}[X]\)</span> such that</p>
 <p><span class="math display">\[
 	f \left( \sum_{i=0}^k a_i L_i(X) \right) = \sum_{i=0}^k f(a_i) L_i(X) + Z(X) Q(X)
 \]</span></p></blockquote>
+
+<p>The way to check that the lemma is true for me was to implement it with code and check that it is satisfied. This is not a proper way, so luckily later <a href="https://hecmas.github.io">Héctor Masip</a> showed me an actual proof of this lemma, which goes as follows:</p>
+
+<p>Recall from the <a href="https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division">euclidean polynomial division</a>:</p>
+
+<blockquote>
+<p>For <span class="math inline">\(f(X), g(X) \in \mathbb{F}[X]\)</span> with <span class="math inline">\(\deg f \geq \deg g\)</span>, <span class="math inline">\(\exists\)</span> unique polynomials <span class="math inline">\(q(X), r(X) \in \mathbb{F}[X]\)</span> such that <span class="math inline">\(f(X) = g(X) q(X) + r(X)\)</span>, with <span class="math inline">\(0 \leq \deg r &lt; \deg g\)</span>.</p>
+</blockquote>
+
+<p>Thus,</p>
+<p><span class="math display">\[f(\sum_{i=0}^k a_i \cdot L_i(X)) = Q(X) \cdot Z(X) + r(X)\]</span></p><p>with <span class="math inline">\(0 \leq \deg r &lt; \deg z = k+1\)</span>.</p>
+
+<p>So, when evaluating at <span class="math inline">\(a_j, ~\forall j=0, \ldots, k\)</span>,</p>
+<p><span class="math display">\[f(\sum_{i=0}^k a_i \cdot L_i(a_j)) = f(a_j) = \underbrace{Q(a_j) \cdot Z(a_j)}_{0} + r(a_j)\]</span></p><p>so <span class="math inline">\(f(a_j)=r(a_j)\)</span>, therefore</p>
+<p><span class="math display">\[r(X) = \sum_{i=0}^k r(a_i) \cdot L_i(X) = \sum_{i=0}^k f(a_i) \cdot L_i(X)\]</span></p>
+<div style="float:right;">
+
+$\square$
+
+</div>
 
 <h2>ProtoGalaxy protocol</h2>
 

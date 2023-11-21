@@ -132,13 +132,40 @@ Our goal will be to prove that we have folded various instantiations of valid wi
 
 
 #### Lemma 4.2
-The following lemma is proven in the ProtoGalaxy paper, but for the current overview we will stick just to its results. The details can be found in the paper itself.
+The following lemma is from the ProtoGalaxy paper:
 
 > **Lemma 4.2:** Fix any polynomial $f(X) \in \mathbb{F}[X]$ and $a_0, \ldots, a_k \in \mathbb{F}$. There exists $Q(X) \in \mathbb{F}[X]$ such that
 >
 > $$
 > 	f \left( \sum_{i=0}^k a_i L_i(X) \right) = \sum_{i=0}^k f(a_i) L_i(X) + Z(X) Q(X)
 > $$
+
+The way to check that the lemma is true for me was to implement it with code and check that it is satisfied. This is not a proper way, so luckily later [Héctor Masip](https://hecmas.github.io) showed me an actual proof of this lemma, which goes as follows:
+
+Recall from the [euclidean polynomial division](https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division):
+
+> For $f(X), g(X) \in \mathbb{F}[X]$ with $\deg f \geq \deg g$, $\exists$ unique polynomials $q(X), r(X) \in \mathbb{F}[X]$ such that $f(X) = g(X) q(X) + r(X)$, with $0 \leq \deg r < \deg g$.
+
+Thus,
+
+$$f(\sum_{i=0}^k a_i \cdot L_i(X)) = Q(X) \cdot Z(X) + r(X)$$
+
+with $0 \leq \deg r < \deg z = k+1$.
+
+So, when evaluating at $a_j, ~\forall j=0, \ldots, k$,
+
+$$f(\sum_{i=0}^k a_i \cdot L_i(a_j)) = f(a_j) = \underbrace{Q(a_j) \cdot Z(a_j)}_{0} + r(a_j)$$
+
+so $f(a_j)=r(a_j)$, therefore
+
+$$r(X) = \sum_{i=0}^k r(a_i) \cdot L_i(X) = \sum_{i=0}^k f(a_i) \cdot L_i(X)$$
+
+<div style="float:right;">
+
+$\square$
+
+</div>
+
 
 
 ## ProtoGalaxy protocol
