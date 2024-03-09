@@ -10,7 +10,7 @@ I make use of $\textcolor{blue}{c}\textcolor{magenta}{o}\textcolor{orange}{l}\te
 
 ProtoGalaxy is a *folding scheme* which iterates on ideas from [ProtoStar paper](https://eprint.iacr.org/2023/620) (here you can find [Geometry's post](https://geometry.xyz/notebook/paper-speedrun-protostar) overviewing its main results and techniques).
 
-For an introduction to *folding schemes* I highly recommend [this talk (at 1:46)](https://youtu.be/IzLTpKWt-yg?t=6367) by [Carlos Perez](https://twitter.com/CPerezz19).
+For an introduction to *folding schemes* I highly recommend [this talk (at 1:46)](https://youtu.be/IzLTpKWt-yg?t=6367) by [Carlos Pérez](https://twitter.com/CPerezz19).
 
 I would like to thank [Liam Eagen](https://twitter.com/LiamEagen) and [Ariel Gabizon](https://twitter.com/rel_zeta_tech) for their kind explanations on the scheme.
 Also thanks to [Onur](https://twitter.com/kiliconu) for comments and corrections.
@@ -142,7 +142,7 @@ The following lemma is from the ProtoGalaxy paper:
 
 The way to check that the lemma is true for me was to implement it with code and check that it is satisfied. This is not a proper way, so luckily later [Héctor Masip](https://hecmas.github.io) showed me an actual proof of this lemma, which goes as follows:
 
-Recall from the [euclidean polynomial division](https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division):
+Recall from the [Euclidean polynomial division](https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division):
 
 > For $f(X), g(X) \in \mathbb{F}[X]$ with $\deg f \geq \deg g$, $\exists$ unique polynomials $q(X), r(X) \in \mathbb{F}[X]$ such that $f(X) = g(X) q(X) + r(X)$, with $0 \leq \deg r < \deg g$.
 
@@ -150,7 +150,7 @@ Thus,
 
 $$f(\sum_{i=0}^k a_i \cdot L_i(X)) = Q(X) \cdot Z(X) + r(X)$$
 
-with $0 \leq \deg r < \deg z = k+1$.
+with $0 \leq \deg r < \deg Z = k+1$.
 
 So, when evaluating at $a_j, ~\forall j=0, \ldots, k$,
 
@@ -217,7 +217,7 @@ One way to combine the instances is through making use of a random linear combin
 	\\
 	\text{\scriptsize{representation of the new random vector over $X$}}
 	\\
-	\text{\scriptsize{where $\overrightarrow{\eta}=\{ \beta+X \delta, \beta^2 + X \delta^2, \beta^4 +X \delta^4, \ldots, \beta^{2^{t-1}} + X \delta^{2^{t-1}} \}$}}
+	\text{\scriptsize{where $\overrightarrow{\eta}=\{ \beta+X \delta, (\beta + X \delta)^2, (\beta +X \delta)^4, \ldots, (\beta + X \delta)^{2^{t-1}} \}$}}
 	\\
 	= \sum_{i \in [n]}
 		pow_i(\textcolor{orange}{\overrightarrow{\eta}})

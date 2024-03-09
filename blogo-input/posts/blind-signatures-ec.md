@@ -5,7 +5,7 @@
 
 #### Blind signatures
 
-Few years ago I read about the RSA blind signatures scheme (thanks to [Juan Hernández](https://futur.upc.edu/JuanBautistaHernandezSerrano) who discovered it to me) and I was amazed on such thing being possible. You can read the step by step of the *RSA blind signatures* scheme in [this Wikipedia article](https://en.wikipedia.org/wiki/Blind_signature#Blind_RSA_signatures).
+Few years ago I read about the RSA blind signatures scheme (thanks to [Juan Hernández](https://futur.upc.edu/JuanHernandezSerrano) who discovered it to me) and I was amazed on such thing being possible. You can read the step by step of the *RSA blind signatures* scheme in [this Wikipedia article](https://en.wikipedia.org/wiki/Blind_signature#Blind_RSA_signatures).
 The main idea is that one party has a message and blinds it, then sends the blinded message to a signer. The signer generates a signature of that blinded message, who sends it to the initial party, who unblinds the signature, obtaining a valid signature for the original message, while the signer does not know what it is signing, but the signature can be verified for the original message for the signer's public key.
 
 
@@ -105,3 +105,36 @@ Blind signatures are an interesting concept, which can be used in some use cases
 An implementation of this scheme in Go can be found in: https://github.com/arnaucube/go-blindsecp256k1 (and a compatible Typescript implementation [blindsecp256k1-js](https://github.com/arnaucube/blindsecp256k1-js)). A next iteration could be to abstract the curve & keys structures, to use the generic Go ones, so other curves and already existing keys could be used with the same code.
 
 *Special thanks to [@dhole](https://github.com/dhole) for reviewing this text.*
+
+
+### Update 2022-10-29: Schnorr Blind Signatures
+*2022-10-29*
+
+[Vincenzo Iovino](https://sites.google.com/site/vincenzoiovinoit/) recently showed me the paper https://eprint.iacr.org/2019/877, which describes the *Blind Schnorr Signature*. This subsection describes it. The concepts and parties are the same, the difference is in the values computed.
+
+The public parameters consist of a group $\mathbb{G}$ of order $p$ and generator $G$, and a cryptographic hash function $\mathcal{H} : \{0,1\}^* \rightarrow \mathbb{Z}_p$. 
+
+The private key of the Signer is a random scalar $x \in \mathbb{Z}_p$ and the corresponding public key is $X = xG$.
+
+Any User who wants to obtain a signature for some message $m$ without disclosing the content of that message to the Signer proceeds as follows:
+
+1. The User sends a signing request to the Signer. This request will typically be signed; thus the Signer knows whether the request is legitimate or not.
+2. If the request is legitimate, the Signer generates a random $r \in \mathbb{Z}_p$, computes $R = rG$ and sends $R$ to the User.
+3. The User selects random scalars $\alpha, \beta \in \mathbb{Z}_p$, computes the \emph{blinding factor} $R' = R + \alpha G + \beta X$, sets $c = \mathcal{H}(R', m) + \beta \bmod{p}$ and sends $c$ to the Signer.
+4. The Signer computes $s = r + cx \bmod{p}$ and sends $s$ to the User.
+5. The User verifies that the value $s$ received is correct by verifying that $sG = R + cX$. Setting $s' = s + \alpha \bmod{p}$, the signature of the message $m$ is then $\sigma = (R', s')$.
+
+Anyone can then verify the validity of the signature by checking the equality $s'G \stackrel{?}{=} R' + \mathcal{H}(R', m)X$. To see why this must hold, we can unroll the equation:
+
+$$
+s'G = sG + \alpha G \\
+    = rG + cxG + \alpha G \\
+    = rG + (\mathcal{H}(R', m) + \beta) X + \alpha G \\
+    = R + \alpha G + \beta X + \mathcal{H}(R', m) X \\
+    = R' + \mathcal{H}(R', m) X
+$$
+
+Note that blind Schnorr signatures can be subject to so-called ROS (Random inhomogeneities in a Overdetermined Solvable system of linear equations) attacks, but these attacks can be defended against by forbidding parallel sessions.
+
+
+An implementation of this scheme in Rust and also in R1CS circuits can be found at [github.com/aragonzkresearch/ark-ec-blind-signatures](https://github.com/aragonzkresearch/ark-ec-blind-signatures) . We used this scheme in the [Blind-OVOTE](https://github.com/aragonzkresearch/research/blob/main/blind-ovote/blind-ovote.pdf) project, a L2 validity rollup, which uses blind signatures over elliptic curves inside zkSNARK, to provide offchain anonymous voting with onchain binding execution on Ethereum.
