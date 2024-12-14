@@ -77,7 +77,7 @@ The paper is very well written and exposes the ideas very clearly, so it&rsquo;s
 
 <p>ProtoGalaxy is a <em>folding scheme</em> which iterates on ideas from <a href="https://eprint.iacr.org/2023/620">ProtoStar paper</a> (here you can find <a href="https://geometry.xyz/notebook/paper-speedrun-protostar">Geometry&rsquo;s post</a> overviewing its main results and techniques).</p>
 
-<p>For an introduction to <em>folding schemes</em> I highly recommend <a href="https://youtu.be/IzLTpKWt-yg?t=6367">this talk (at 1:46)</a> by <a href="https://twitter.com/CPerezz19">Carlos Perez</a>.</p>
+<p>For an introduction to <em>folding schemes</em> I highly recommend <a href="https://youtu.be/IzLTpKWt-yg?t=6367">this talk (at 1:46)</a> by <a href="https://twitter.com/CPerezz19">Carlos Pérez</a>.</p>
 
 <p>I would like to thank <a href="https://twitter.com/LiamEagen">Liam Eagen</a> and <a href="https://twitter.com/rel_zeta_tech">Ariel Gabizon</a> for their kind explanations on the scheme.
 Also thanks to <a href="https://twitter.com/kiliconu">Onur</a> for comments and corrections.</p>
@@ -192,14 +192,14 @@ While, when we evaluate $L_2(X)$ at for example $\omega^1$, we will obtain a $0$
 
 <p>The way to check that the lemma is true for me was to implement it with code and check that it is satisfied. This is not a proper way, so luckily later <a href="https://hecmas.github.io">Héctor Masip</a> showed me an actual proof of this lemma, which goes as follows:</p>
 
-<p>Recall from the <a href="https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division">euclidean polynomial division</a>:</p>
+<p>Recall from the <a href="https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#Euclidean_division">Euclidean polynomial division</a>:</p>
 
 <blockquote>
 <p>For <span class="math inline">\(f(X), g(X) \in \mathbb{F}[X]\)</span> with <span class="math inline">\(\deg f \geq \deg g\)</span>, <span class="math inline">\(\exists\)</span> unique polynomials <span class="math inline">\(q(X), r(X) \in \mathbb{F}[X]\)</span> such that <span class="math inline">\(f(X) = g(X) q(X) + r(X)\)</span>, with <span class="math inline">\(0 \leq \deg r &lt; \deg g\)</span>.</p>
 </blockquote>
 
 <p>Thus,</p>
-<p><span class="math display">\[f(\sum_{i=0}^k a_i \cdot L_i(X)) = Q(X) \cdot Z(X) + r(X)\]</span></p><p>with <span class="math inline">\(0 \leq \deg r &lt; \deg z = k+1\)</span>.</p>
+<p><span class="math display">\[f(\sum_{i=0}^k a_i \cdot L_i(X)) = Q(X) \cdot Z(X) + r(X)\]</span></p><p>with <span class="math inline">\(0 \leq \deg r &lt; \deg Z = k+1\)</span>.</p>
 
 <p>So, when evaluating at <span class="math inline">\(a_j, ~\forall j=0, \ldots, k\)</span>,</p>
 <p><span class="math display">\[f(\sum_{i=0}^k a_i \cdot L_i(a_j)) = f(a_j) = \underbrace{Q(a_j) \cdot Z(a_j)}_{0} + r(a_j)\]</span></p><p>so <span class="math inline">\(f(a_j)=r(a_j)\)</span>, therefore</p>
@@ -259,7 +259,7 @@ F(X) := \sum_{i \in [n]} pow_i(
 \\
 \text{\scriptsize{representation of the new random vector over $X$}}
 \\
-\text{\scriptsize{where $\overrightarrow{\eta}=\{ \beta+X \delta, \beta^2 + X \delta^2, \beta^4 +X \delta^4, \ldots, \beta^{2^{t-1}} + X \delta^{2^{t-1}} \}$}}
+\text{\scriptsize{where $\overrightarrow{\eta}=\{ \beta+X \delta, (\beta + X \delta)^2, (\beta +X \delta)^4, \ldots, (\beta + X \delta)^{2^{t-1}} \}$}}
 \\
 = \sum_{i \in [n]}
 	pow_i(\textcolor{orange}{\overrightarrow{\eta}})

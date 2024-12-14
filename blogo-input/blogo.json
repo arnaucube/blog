@@ -27,7 +27,7 @@
     {
       "thumb": "fri_thumb.md",
       "metadescr": "This document contains notes on FRI low degree testing and the trick to convert it to a polynomial commitment scheme.",
-      "outsideArticle": "https://raw.githubusercontent.com/arnaucube/math/master/notes_fri.pdf"
+      "outsideArticle": "https://raw.githubusercontent.com/arnaucube/math/master/notes_fri_stir.pdf"
     },
     {
       "thumb": "powersoftau_thumb.md",
